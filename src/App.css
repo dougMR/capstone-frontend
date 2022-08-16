@@ -1,0 +1,382 @@
+:root {
+    font-size: calc(10px + 1vw);
+    /* font vars */
+    --label-font: sans-serif;
+    /* color vars */
+    --brand-color-dark: rgb(45, 80, 178);
+    --brand-color-light: rgb(120, 148, 225);
+    --bg-light: rgb(254, 255, 226);
+    --dark-grey: #333;
+    --med-grey: #888;
+    --light-med-grey: #aaa;
+    --light-grey: #949494;
+    /* format vars */
+    --max-width: 600px;
+}
+html,
+body {
+    margin: 0;
+    height: 100%;
+    font-family: sans-serif;
+}
+div {
+    border: 1px solid lime;
+    box-sizing: border-box;
+}
+
+/* 
+=========================
+App
+=========================
+*/
+.no-select {
+    user-select: none;
+}
+
+/* 
+=========================
+App
+=========================
+*/
+#root {
+    height: 100%;
+}
+#app-body {
+    position: relative;
+    height: 100%;
+    background-color: var(--bg-light);
+    max-width: var(--max-width);
+}
+#app-body .view {
+    /* position: absolute; */
+    display: flex;
+    /* width: 100%; */
+    /* height: 100%; */
+    top: 0;
+    left: 0;
+
+    flex-direction: column;
+    align-items: center;
+}
+#app-body .view.active {
+    display: flex;
+    flex-direction: column;
+}
+.button {
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    /* border: 2px solid green; */
+    background-color: limegreen;
+    width: 2em;
+    height: 2em;
+    text-align: center;
+}
+
+/* 
+=========================
+Header
+=========================
+*/
+header {
+    background-color: var(--brand-color-light);
+}
+header .top-display {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    margin-left: 1vw;
+}
+header .logo-img {
+    margin-left: 10w;
+    height: 10vw;
+    max-height: 50px;
+    width: auto;
+}
+
+header .store-name {
+
+}
+
+header nav {
+    text-align: center;
+}
+
+header nav button {
+    padding: 0.25rem 0.5rem;
+    margin: 0 0.25rem;
+}
+
+#test-buttons {
+    /* position: absolute;
+    z-index: 100; */
+    padding: 0.25rem;
+}
+
+/* 
+=========================
+Shopping View
+=========================
+*/
+#shopping-view {
+    display: flex;
+}
+.app-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#current-item-div {
+    justify-content: center;
+    background-color: var(--brand-color-light);
+    text-shadow: 0 0 0.3em var(--brand-color-dark);
+    color: white;
+}
+
+
+
+#current-item-div {
+    font-size: 2rem;
+}
+#check-off-current-item-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    background-color: var(--brand-color-light);
+    font-size: 2rem;
+    padding: 0;
+    height: 1em;
+    width: 1em;
+    margin:0.1em;
+    /* line-height: 0; */
+}
+/* #items-status {
+
+} */
+
+#items-procured,
+#items-remaining {
+    font-size: 2rem;
+}
+
+/* #current-item-div {
+} */
+
+/* 
+=========================
+Shopping Map
+=========================
+*/
+#map-window {
+    /* height: 100vw; */
+    max-height: var(--max-width);
+    border: 5px solid var(--brand-color-dark);
+    flex-grow: 1;
+}
+#canvas-holder {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 800px;
+    height: 100%;
+    box-sizing: border-box;
+    border: 2px solid purple;
+    background-color: rgb(167, 255, 176);
+    overflow: hidden;
+
+    user-select: none;
+}
+
+#drawing-board {
+    position: absolute;
+    box-sizing: border-box;
+    /* border: 3px solid red; */
+    width: auto;
+    height: auto;
+    /* Ultimately, we might use the canvas for all mouse events, so this may change */
+    /* pointer-events: none; */
+    z-index: 200;
+}
+
+#canvas-holder > #map-img {
+    position: absolute;
+    width: 100%;
+    height: auto;
+    z-index: 100;
+}
+
+#controls button {
+    font-size: 2rem;
+    background-color: var(--brand-color-dark);
+    color: white;
+}
+
+/* SLIDER */
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+  
+  .slider:hover {
+    opacity: 1;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+  /* END SLIDER */
+
+/* 
+=========================================
+  LIST VIEW 
+=========================================
+*/
+#list-view {
+    color: var(--med-grey);
+}
+
+#list,
+#search-results {
+    min-width: 70vw;
+}
+
+.list-item {
+    padding: 0.5rem 1rem;
+    margin: 0 0 0.2rem;
+    border: 2px solid var(--med-grey);
+    background-color: #eee;
+}
+/* .list-item.open {
+} */
+.item-name {
+    font-family: var(--label-font);
+    font-weight: bold;
+
+    text-transform: capitalize;
+    font-size: 2rem;
+    font-style: italic;
+}
+.list-item .item-name {
+    position: relative;
+    color: var(--light-grey);
+}
+.list-item.active .item-name {
+    color: var(--med-grey);
+}
+.list-item.crossed-off.active .item-name {
+    color: var(--light-med-grey);
+}
+.list-item.crossed-off .item-name:after {
+    content: "";
+    position: absolute;
+    background-color: var(--light-grey);
+    height: 0.1em;
+    width: 100%;
+    left: 0;
+    top: 0.6em;
+    line-height: 0;
+}
+.list-item.crossed-off.active .item-name:after {
+    background-color: var(--light-med-grey);
+}
+
+.list-item > .item-controls {
+    display: none;
+    margin-top: 0.5rem;
+}
+.list-item.open > .item-controls {
+    display: block;
+}
+
+.list-item > .item-controls > button {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.2rem;
+}
+
+.list-item > .item-controls > button.remove-button:after {
+    content: "-";
+}
+
+.list-item > .item-controls > button.disable-button:after {
+    content: "!";
+}
+.list-item.active > .item-controls > button.disable-button:after {
+    content: "X";
+}
+
+.list-item > .item-controls > button.cross-off-button:after {
+    content: "√";
+}
+
+/* Add Item */
+#add-item {
+    display: block;
+    /* border: 2px solid red ; */
+    background-color: var(--light-grey);
+    color: white;
+    border-radius: 0.7 rem;
+    padding: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 3rem;
+    line-height: 1rem;
+}
+#search {
+    border: 2px solid blue;
+    padding: 1rem;
+}
+
+
+/* 
+=========================================
+  SEARCH VIEW 
+=========================================
+*/
+.search-field {
+    margin: 1em;
+    padding: 0.2em 0.4em;
+    font-size: 2rem;
+}
+
+/* 
+=========================================
+  STORE SELECTOR VIEW 
+=========================================
+*/
+#store-select-view {
+    padding: 2rem;
+    /* background-color: red;
+  border: 10px solid orange; */
+}
+
+
+/* 
+=========================
+Footer
+=========================
+*/
+footer {
+    /* background-color: #444; */
+    padding: 0.25rem 0.5rem;
+    color: #666;
+}
