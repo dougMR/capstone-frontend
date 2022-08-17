@@ -7,9 +7,9 @@
     --brand-color-light: rgb(120, 148, 225);
     --bg-light: rgb(254, 255, 226);
     --dark-grey: #333;
-    --med-grey: #888;
-    --light-med-grey: #aaa;
-    --light-grey: #949494;
+    --med-grey: #777;
+    --light-med-grey: #999;
+    --light-grey: #c6c6c6;
     /* format vars */
     --max-width: 600px;
 }

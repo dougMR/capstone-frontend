@@ -12,29 +12,26 @@ const Launch = ({
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Get stores[].
-        // store: {id, name, map_url, entrance_tile_id, checkout_tile_id}
-        const getStores = async () => {
-            const response1 = await fetch(`${APIUrl}/stores`, {
-                credentials: "include",
-            });
-            const data1 = await response1.json();
-            setStores(data1.stores);
-        };
-        const CheckLoggedInAndGetCurrentStore = async () => {
+        const CheckLoggedInGetStoresAndGetCurrentStore = async () => {
             // see if we're logged in
             // request loginStatus
             // have loginStatus return storeID (user's last selected store) if loggedIn
-            const response2 = await fetch(`${APIUrl}/loginStatus`, {
+            const response1 = await fetch(`${APIUrl}/loginStatus`, {
                 credentials: "include",
             });
-            const data2 = await response2.json();
-            if (data2.isLoggedIn) {
+            const data1 = await response1.json();
+            if (data1.isLoggedIn) {
+                // Get stores[].
+                // store: {id, name, map_url, entrance_tile_id, checkout_tile_id}
+                const response2 = await fetch(`${APIUrl}/stores`, {
+                    credentials: "include",
+                });
+                const data2 = await response2.json();
 
                 // set currentStore to the complete store object
                 // {name, id, floorPlanImage, entranceTile, checkoutTile, grid[]}
                 const response3 = await fetch(
-                    `${APIUrl}/store/${data2.storeID}`,
+                    `${APIUrl}/store/${data1.storeID}`,
                     {
                         credentials: "include",
                     }
@@ -47,22 +44,28 @@ const Launch = ({
                 });
                 const data4 = await response4.json();
 
+                setStores(data2.stores);
                 updateShoppingList(data4.listItems);
                 setStoreID(data2.storeID);
                 setCurrentStore(data3.store);
-                navigate("/list");
+                
             } else {
                 navigate("/login");
             }
         };
-        getStores();
-        CheckLoggedInAndGetCurrentStore();
+        // getStores();
+        CheckLoggedInGetStoresAndGetCurrentStore();
     }, [navigate]);
 
+    // useEffect(()=>{
+    //     if (stores && storeID && currentStore ){
+    //         navigate("/list");
+    //     }
+    // }, [stores, storeID, currentStore]) //TODO: Pass these in as props
 
     return (
         <>
-            <h1>Sniffer</h1>
+            <h1>Loading...</h1>
         </>
     );
 };

@@ -80,12 +80,23 @@ const Map = ({ currentStore, shoppingList }) => {
         };
     }, []);
 
-    useEffect(()=>{
-        setTimeout(()=>{
-            drawGrid();
-            plotShoppingItemsOnMap();
-        },0);
-    },[shoppingList]);
+    useEffect(() => {
+        if (mapContextRef.current) {
+            setTimeout(() => {
+                drawGrid();
+                plotShoppingItemsOnMap();
+            }, 0);
+        }
+    }, [mapContextRef.current]);
+
+    useEffect(() => {
+        if (mapContextRef.current) {
+            setTimeout(() => {
+                drawGrid();
+                plotShoppingItemsOnMap();
+            }, 0);
+        }
+    }, [shoppingList]);
 
     useEffect(() => {
         /* zoom was changed, 
@@ -113,14 +124,14 @@ const Map = ({ currentStore, shoppingList }) => {
             // } else {
             //     console.log("imageLoadDone: ", imageLoadDone);
             // }
-            setTimeout(()=>{
-                drawGrid();
-                plotShoppingItemsOnMap();
-            },0);
-            
+            if (mapContextRef.current) {
+                setTimeout(() => {
+                    drawGrid();
+                    plotShoppingItemsOnMap();
+                }, 0);
+            }
         };
         handleZoomChange();
-
     }, [zoom]);
 
     const recenterOnResize = (zoomChangeRatio) => {
@@ -221,6 +232,7 @@ const Map = ({ currentStore, shoppingList }) => {
 
     const drawGrid = () => {
         const ctx = mapContextRef.current;
+        if (!ctx) return;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
         ctx.lineWidth = Math.min(tileSize * 0.1, 1);
@@ -238,35 +250,47 @@ const Map = ({ currentStore, shoppingList }) => {
                 ctx.stroke();
             }
         }
-    }
+    };
 
     const plotShoppingItemsOnMap = () => {
         const ctx = mapContextRef.current;
+        if (!ctx) return;
         const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
         const halfTile = tileSize * 0.5;
-        ctx.fillStyle = "red";
+        const radius = Math.max(halfTile * 2, 5);
+        // console.log("RADIUS: ",radius);
+        // console.log("TILESIZE: ",tileSize);
+        ctx.fillStyle = "grey";
         let firstItem = true;
-        ctx.lineWidth = Math.min(tileSize * 0.1, 1);
-        ctx.strokeStyle = "yellow";
-        for(const item of shoppingList){
+        ctx.lineWidth = Math.max(tileSize * 0.1, 1);
+        ctx.strokeStyle = "black";
+        const activeItems = shoppingList.filter((item) => item.active);
+        for (const item of activeItems) {
+            // console.log("ITEM: ", item);
             const x = item.col * tileSize;
-                const y = item.row * tileSize;
-                // Stroke on top of fill
-                ctx.beginPath();
-                if( firstItem ) {
-                    console.log('firstItem: ',item);
+            const y = item.row * tileSize;
+            // Stroke on top of fill
+            ctx.beginPath();
+            if (firstItem) {
+                console.log("firstItem: ", item);
+                if (!item.crossedOff) {
                     ctx.fillStyle = "limegreen";
+                    // ctx.strokeStyle = "yellow";
                     firstItem = false;
-                } else {
-                    ctx.fillStyle = "red";
                 }
-                
-                // ctx.rect(x, y, tileSize, tileSize);
-                ctx.arc(x+halfTile, y+halfTile, halfTile*1.5, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
+            } else if (item.crossedOff) {
+                ctx.fillStyle = "grey";
+                ctx.strokeStyle = "white";
+            } else {
+                ctx.fillStyle = "orange";
+                // ctx.strokeStyle = "black";
+            }
+
+            ctx.arc(x + halfTile, y + halfTile, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
         }
-    }
+    };
 
     return (
         <div id="map">
