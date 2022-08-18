@@ -14,4 +14,5 @@ const Footer = () => {
         </footer>
     );
 };
+// comment
 export default Footer;
