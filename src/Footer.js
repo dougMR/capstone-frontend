@@ -5,7 +5,7 @@ const Footer = () => {
         <footer>
             ©2022 MegaloMedia,
             <img
-                style={{ height: "16px", width: 'auto' }}
+                style={{ height: "12px", width: 'auto' }}
                 className="megaDoug-bolt-img"
                 src={megaDougBoltLogo}
                 alt="megaDoug bolt Logo"
