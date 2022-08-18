@@ -125,6 +125,10 @@ function App() {
                             path="/"
                             element={
                                 <Launch
+                                    storeID={storeID}
+                                    currentStore={currentStore}
+                                    stores={stores}
+                                    shoppingList={shoppingList}
                                     setStoreID={setStoreID}
                                     setCurrentStore={setCurrentStore}
                                     setStores={setStores}

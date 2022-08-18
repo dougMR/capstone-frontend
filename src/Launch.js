@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import APIUrl from "./APIUrl";
 console.log("Hello from Launch.js");
 const Launch = ({
+    stores,
+    storeID,
+    currentStore,
+    shoppingList,
     setStores,
     setStoreID,
     setCurrentStore,
@@ -20,6 +24,7 @@ const Launch = ({
                 credentials: "include",
             });
             const data1 = await response1.json();
+            console.log("data1: ",data1);
             if (data1.isLoggedIn) {
                 // Get stores[].
                 // store: {id, name, map_url, entrance_tile_id, checkout_tile_id}
@@ -46,7 +51,7 @@ const Launch = ({
 
                 setStores(data2.stores);
                 updateShoppingList(data4.listItems);
-                setStoreID(data2.storeID);
+                setStoreID(data1.storeID);
                 setCurrentStore(data3.store);
                 
             } else {
@@ -57,11 +62,16 @@ const Launch = ({
         CheckLoggedInGetStoresAndGetCurrentStore();
     }, [navigate]);
 
-    // useEffect(()=>{
-    //     if (stores && storeID && currentStore ){
-    //         navigate("/list");
-    //     }
-    // }, [stores, storeID, currentStore]) //TODO: Pass these in as props
+    useEffect(()=>{
+        console.log("check Loaded: ");
+        console.log("stores: ",stores);
+        console.log("storeID: ",storeID);
+        console.log("currentStore: ",currentStore);
+        console.log("shoppingList: ",shoppingList);
+        if (stores.length > 0 && storeID != -1 && currentStore && shoppingList ){
+            navigate("/list");
+        }
+    }, [stores, storeID, currentStore,shoppingList]);
 
     return (
         <>

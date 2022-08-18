@@ -236,7 +236,7 @@ const Map = ({ currentStore, shoppingList }) => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
         ctx.lineWidth = Math.min(tileSize * 0.1, 1);
-        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.strokeStyle = "rgba(0,0,0,0.25)";
         ctx.fillStyle = "#333";
 
         for (const col of currentStore.grid) {
@@ -272,10 +272,8 @@ const Map = ({ currentStore, shoppingList }) => {
             // Stroke on top of fill
             ctx.beginPath();
             if (firstItem) {
-                console.log("firstItem: ", item);
                 if (!item.crossedOff) {
                     ctx.fillStyle = "limegreen";
-                    // ctx.strokeStyle = "yellow";
                     firstItem = false;
                 }
             } else if (item.crossedOff) {
@@ -283,7 +281,6 @@ const Map = ({ currentStore, shoppingList }) => {
                 ctx.strokeStyle = "white";
             } else {
                 ctx.fillStyle = "orange";
-                // ctx.strokeStyle = "black";
             }
 
             ctx.arc(x + halfTile, y + halfTile, radius, 0, 2 * Math.PI);
