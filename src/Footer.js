@@ -1,4 +1,4 @@
-import megaDougBoltLogo from "./images/shopfaster-logo.svg";
+import megaDougBoltLogo from "./images/megadoug_bolt_in_circle_cutout_grey.svg";
 
 const Footer = () => {
     return (
