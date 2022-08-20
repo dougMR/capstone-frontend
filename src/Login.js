@@ -22,6 +22,7 @@ const Login = () => {
                 credentials : "include"
             });
             const data = await response.json();
+
             if(data.error){
                 setError(data.error);
             } else {
@@ -29,7 +30,7 @@ const Login = () => {
                 // redirect to Admin, login successful
                 navigate("/");
             }
-            console.log(data);
+            console.log("login data: ",data);
         } catch (error) {
             setError(`Login API call failed. ERROR: ${error}`);
             console.error(error);

@@ -1,7 +1,7 @@
 import APIUrl from "./APIUrl";
 import { useState } from "react";
 const ListItem = ({ item, updateShoppingList }) => {
-    console.log('listItem: ',item);
+    // console.log('listItem: ',item);
     const [open, setOpen] = useState(false);
 
     // Remove Item from List
