@@ -34,8 +34,8 @@ const Launch = ({
                 const data2 = await response2.json();
 
                 // set currentStore to the complete store object
-                // {name, id, floorPlanImage, entranceTile, checkoutTile, grid[]}
                 const response3 = await fetch(
+                // {name, id, floorPlanImage, entranceTile, checkoutTile, grid[]}
                     `${APIUrl}/store/${data1.storeID}`,
                     {
                         credentials: "include",
@@ -68,7 +68,7 @@ const Launch = ({
         console.log("storeID: ",storeID);
         console.log("currentStore: ",currentStore);
         console.log("shoppingList: ",shoppingList);
-        if (stores.length > 0 && storeID != -1 && currentStore && shoppingList ){
+        if (stores.length > 0 && storeID !== -1 && currentStore && shoppingList ){
             navigate("/list");
         }
     }, [stores, storeID, currentStore,shoppingList]);

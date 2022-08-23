@@ -19,7 +19,7 @@ const Login = () => {
                     username,
                     password,
                 }),
-                credentials : "same-origin"
+                credentials : "include"
             });
             const data = await response.json();
 
@@ -28,7 +28,11 @@ const Login = () => {
             } else {
                 setError("");
                 // redirect to Admin, login successful
-                navigate("/");
+
+                setTimeout(()=>{
+                    navigate("/");
+                }, 1000 )
+                
             }
             console.log("login data: ",data);
         } catch (error) {
