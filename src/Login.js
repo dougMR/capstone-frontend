@@ -29,9 +29,9 @@ const Login = () => {
                 setError("");
                 // redirect to Admin, login successful
 
-                // setTimeout(()=>{
+                setTimeout(()=>{
                     navigate("/");
-                // }, 1000 )
+                }, 1000 );
                 
             }
             console.log("login data: ",data);
