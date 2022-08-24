@@ -1,10 +1,10 @@
-// import Pathfinding from "./Pathfinding";
+import Pathfinding from "./Pathfinding";
 import { useEffect, useState, useRef } from "react";
 const Map = ({ currentStore, shoppingList }) => {
     // console.log('currentStore: ',currentStore);
     const [zoom, setZoom] = useState(1);
     const [lastZoom, setLastZoom] = useState(1);
-    const [tileSize, setTileSize] = useState();
+    // const [tileSize, setTileSize] = useState();
     const [imageLoadDone, setImageLoadDone] = useState(false);
     const [dragging, setDragging] = useState(false);
     const [startDragPosition, setStartDragPosition] = useState({});
@@ -78,25 +78,27 @@ const Map = ({ currentStore, shoppingList }) => {
             window.removeEventListener("pointerup", endTouchCanvas);
             window.removeEventListener("mousemove", moveOverCanvas);
         };
-    }, []);
+    }, );
 
     useEffect(() => {
         if (mapContextRef.current) {
             setTimeout(() => {
                 drawGrid();
                 plotShoppingItemsOnMap();
+                drawShoppingPath();
             }, 0);
         }
-    }, [mapContextRef.current]);
+    }, [mapContextRef.current,shoppingList]);
 
-    useEffect(() => {
-        if (mapContextRef.current) {
-            setTimeout(() => {
-                drawGrid();
-                plotShoppingItemsOnMap();
-            }, 0);
-        }
-    }, [shoppingList]);
+    // useEffect(() => {
+    //     if (mapContextRef.current) {
+    //         setTimeout(() => {
+    //             drawGrid();
+    //             plotShoppingItemsOnMap();
+    //             drawShoppingPath();
+    //         }, 0);
+    //     }
+    // }, [shoppingList]);
 
     useEffect(() => {
         /* zoom was changed, 
@@ -287,6 +289,15 @@ const Map = ({ currentStore, shoppingList }) => {
             ctx.fill();
             ctx.stroke();
         }
+    };
+
+    const drawShoppingPath = () => {
+        const ctx = mapContextRef.current;
+        const store = currentStore;
+        const activeItems = shoppingList.filter((item) => {
+            return item.active && !item.crossedOff;
+        });
+        Pathfinding.getAndDrawPath(activeItems, store, ctx);
     };
 
     return (

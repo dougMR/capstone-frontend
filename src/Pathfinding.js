@@ -11,15 +11,26 @@ Return a path. (Array of Segments)
 const secret = "SECRET";
 const waypoints = [];
 const paths = [];
+let currentStore = null;
+let ctx = null;
+let tileSize;
+let entranceTile, checkoutTile;
 const Pathfinding = {
     sayHello: function () {
         console.log("hello. It's ", secret);
     },
-    
-    getPath: function (shoppingList, ctx) {
-            for(const item of shoppingList){
-                waypoints.push(
-                    getTileByIndices(item.col,item.row)
+
+    getAndDrawPath: function (shoppingList, theCurrentStore, theCtx) {
+        currentStore = theCurrentStore;
+        ctx = theCtx;
+        entranceTile = currentStore.entranceTile;
+        checkoutTile = currentStore.checkoutTile;
+        console.log("ENTRANCE TILE: ", entranceTile);
+        console.log("CHECKOUT TILE: ", checkoutTile);
+        tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
+        for (const item of shoppingList) {
+            waypoints.push(
+                getTileByIndices(item.col, item.row)
                 // {
                 // col: item.col,
                 // diagonal: undefined,
@@ -29,62 +40,54 @@ const Pathfinding = {
                 // row: 87
                 // size: 10
                 // }
-                )
-            };
+            );
+        }
+        console.log("WAYPOINTS: ", waypoints.length);
         const orderedWPs = tspShortestByMutation(waypoints);
-    }
+        // Draw path
+        // Draw all the paths between waypoints
+        redrawGrid();
+        console.log("PATHS: ",paths.length);
+        for (const path of paths) {
+            drawPath(path);
+        }
+        return paths;
+    },
 };
 
-
-
-
 // Need at least 2 waypoints to draw path
-console.log("orderedWaypoints: ", orderedWPs);
-for (let wp = 0; wp < orderedWPs.length - 1; wp++) {
-    // console.log("wp index: ", wp);
-    // console.log(
-    //     "orderedWPs[wp]: ",
-    //     orderedWPs[wp]
-    // );
-    // console.log(
-    //     "orderedWPs[wp + 1]: ",
-    //     orderedWPs[wp + 1]
-    // );
-    const path = findPathFromAtoB(orderedWPs[wp], orderedWPs[wp + 1]);
-    if (path) {
-        paths.push(path);
-        // clearPaths();
-    }
-    // orderedWPs[wp].innerHTML = wp;
-    // if (wp === orderedWPs.length - 2) {
-    //     orderedWPs[wp + 1].innerHTML = wp + 1;
-    // }
-}
-console.log("orderedWPs.length: ", orderedWPs.length);
-// Draw all the paths between waypoints
-redrawGrid();
-for (const path of paths) {
-    drawPath(path);
-}
+// console.log("orderedWaypoints: ", orderedWPs);
+// for (let wp = 0; wp < orderedWPs.length - 1; wp++) {
+//     // console.log("wp index: ", wp);
+//     // console.log(
+//     //     "orderedWPs[wp]: ",
+//     //     orderedWPs[wp]
+//     // );
+//     // console.log(
+//     //     "orderedWPs[wp + 1]: ",
+//     //     orderedWPs[wp + 1]
+//     // );
+//     const path = findPathFromAtoB(orderedWPs[wp], orderedWPs[wp + 1]);
+//     if (path) {
+//         paths.push(path);
+//         // clearPaths();
+//     }
+//     // orderedWPs[wp].innerHTML = wp;
+//     // if (wp === orderedWPs.length - 2) {
+//     //     orderedWPs[wp + 1].innerHTML = wp + 1;
+//     // }
+// }
+
 /* PATHFINDING */
 // A path is an array of segments
 
 const findPathFromAtoB = (A, B) => {
+    console.log("=== findPathFromAtoB ");
+    console.log("A: ", A);
+    console.log("B: ", B);
     // A and B are tile/tile objects
     // Find Path from tile A to tile B
     // Returns Array of segments, or null
-
-    // console.log(
-    //     "findPathFromAtoB(",
-    //     A.col,
-    //     ",",
-    //     A.row,
-    //     ", ",
-    //     B.col,
-    //     ",",
-    //     B.row,
-    //     ")"
-    // );
 
     // start from A, get segs to all neighbors
     if (typeof A === "undefined") {
@@ -95,37 +98,28 @@ const findPathFromAtoB = (A, B) => {
     // Keep track of all the segments we put down last iteration
     const lastSegs = [A.endSegment];
 
+    console.log("LAST SEG: ", lastSegs[0]);
+
     // Handle case A === B
     if (A === B) {
         return lastSegs;
     }
 
     let foundTarget = false;
-    // let iterations = 0;
     let noNewSegs = false;
     do {
-        // console.log('lastSegs: ',lastSegs.length);
         const newSegs = [];
+        // Loop through lastSegs, branching out from each segment laid down last iteration.
         for (let segIndex = 0; segIndex < lastSegs.length; segIndex++) {
-            // nextSeg from lastSegs
+            // next Segment from lastSegs
             const lastSeg = lastSegs[segIndex];
-            // console.log("__________________________________");
-            // console.log(
-            //     "        tile: ",
-            //     lastSeg.toTile.col,
-            //     ", ",
-            //     lastSeg.toTile.row
-            // );
+
             // Branch out to Neighbors
             // Alternate clockwise/counter-clockwise,
             // because *maybe that makes for tighter zig-zags?
             const clockwise = segIndex % 2 === 0;
             // Look for Neighbors (n)
-            // console.log(
-            //     `   ==== neighbors for ${lastSeg.toTile.col}, ${lastSeg.toTile.row}`
-            // );
             const increment = 1;
-            // console.log("lastSeg: ", lastSeg);
             for (
                 let n = 0;
                 n < lastSeg.toTile.neighbors.length;
@@ -135,34 +129,25 @@ const findPathFromAtoB = (A, B) => {
                     ? n
                     : lastSeg.toTile.neighbors.length - n - increment;
 
-                nextNeighbor = lastSeg.toTile.neighbors[nextN];
+                let nextNeighbor = lastSeg.toTile.neighbors[nextN];
                 if (nextNeighbor != null) {
                     const col = lastSeg.toTile.neighbors[nextN].col;
                     const row = lastSeg.toTile.neighbors[nextN].row;
                     nextNeighbor = getTileByIndices(col, row);
                 }
 
-                // console.log(nextNeighbor);
                 if (
+                    // Check if nextNeighbor tile is clear
                     nextNeighbor != null &&
                     !nextNeighbor.endSegment &&
                     !nextNeighbor.obstacle
                 ) {
-                    // console.log('nextNeighbor good so far...');
                     // Clear so far, but also check to
-                    // console.log(
-                    //     "   ===  next neighbor: ",
-                    //     nextNeighbor.col,
-                    //     ", ",
-                    //     nextNeighbor.row
-                    // );
-                    // prevent paths from going between corners of 2 diagonally adjacent tiles
+                    // prevent paths from going between corners of 2 diagonally adjacent (occupied) tiles
                     let notIllegalCorner = true;
                     let isCorner = false;
                     if (nextN % 2 === 1) {
                         isCorner = true;
-                        // console.log(`neighbor ${nextN} checkIllegalCorner`);
-
                         // It's a corner neighbor, get the neighbors just before and after this neighbor
                         const neighbors = lastSeg.toTile.neighbors;
                         const preN =
@@ -180,35 +165,7 @@ const findPathFromAtoB = (A, B) => {
                             (preNeighbor.endSegment.fromTile !== postNeighbor &&
                                 postNeighbor.endSegment.fromTile !==
                                     preNeighbor);
-                        // console.log(
-                        //     "preNeighbor: ",
-                        //     preNeighbor.col,
-                        //     ", ",
-                        //     preNeighbor.row
-                        // );
-                        // console.log(
-                        //     "postNeighbor: ",
-                        //     postNeighbor.col,
-                        //     ", ",
-                        //     postNeighbor.row
-                        // );
-                        // console.log("crossedOver: ", !notCrossedOver);
-                        // console.log(
-                        //     "preNeighbor.obstacle: ",
-                        //     preNeighbor.obstacle
-                        // );
-                        // console.log(
-                        //     "postNeighbor.obstacle: ",
-                        //     postNeighbor.obstacle
-                        // );
-                        // console.log(
-                        //     "preNeighbor.endSegment: ",
-                        //     preNeighbor.endSegment
-                        // );
-                        // console.log(
-                        //     "postNeighbor.endSegment: ",
-                        //     postNeighbor.endSegment
-                        // );
+
                         notIllegalCorner =
                             (notCrossedOver &&
                                 (preNeighbor.endSegment ||
@@ -224,25 +181,27 @@ const findPathFromAtoB = (A, B) => {
                             lastSeg,
                             isCorner
                         );
-                        // console.log('nextNeighbor approved');
+                        // newSeg.draw("pink");
+                        // nextNeighbor approved.
                         nextNeighbor.endSegment = newSeg;
-                        // allSegments.push(newSeg);
-                        // drawSegment(newSeg, "rgba(0,0,0,.1)");
                         // is nextNeighbor tile B?
-                        if (nextNeighbor === B) {
-                            // console.log("Found Target!");
+                        // if (nextNeighbor === B) {
+                            if (nextNeighbor.col === B.col && nextNeighbor.row === B.row) {
                             //
                             // **************
                             // Found Target!
                             // **************
                             //
+                            console.log("FOUND TARGET");
                             foundTarget = true;
                             const fullPath = getFullPathFromEndSegment(newSeg);
-                            // clearPaths();
                             clearSegsFromTiles();
+
                             return fullPath;
                         } else {
-                            // newSeg.draw("rgba(0,0,0,0.1");
+                            // Not done yet...
+                            // put every other segment at beginning or end of newSegs[]
+                            // this just helps paths look a little more organic
                             if (isCorner) {
                                 newSegs.push(newSeg);
                             } else {
@@ -253,19 +212,17 @@ const findPathFromAtoB = (A, B) => {
                 }
             }
         }
-        // console.log(`newSegs.length: ${newSegs.length}`);
         if (newSegs.length === 0) {
+            // No new Segments. Dead ended.  Break out of loop and return null.
+            console.log("DEAD END: ", lastSegs.length);
             noNewSegs = true;
-            // console.log("No New Segs");
             break;
         } else {
-            // console.log(">> lastSegs.length: ", lastSegs.length, " <<");
-
+            // Keep going
+            console.log("KEEP GOING, ", newSegs.length);
             lastSegs.length = 0;
             lastSegs.push(...newSegs);
         }
-        // iterations++;
-        // } while (!foundTarget && iterations < 2000 && !noNewSegs);
     } while (!foundTarget && !noNewSegs);
     // console.log("iterations: ", iterations);
     clearSegsFromTiles();
@@ -286,6 +243,7 @@ const drawPathAtoB = (Atile, Btile, drawThisPathOnly = false) => {
 };
 const drawPath = (pathAr) => {
     // Expects an array of segments
+    console.log("DRAW PATH: ", pathAr[0]);
     for (const segment of pathAr) {
         segment.draw("yellow");
     }
@@ -298,8 +256,8 @@ const clearPaths = () => {
 };
 
 const clearSegsFromTiles = () => {
-    // console.log("clearSegsFromTiles()");
-    for (const col of grid) {
+    console.log("clearSegsFromTiles()");
+    for (const col of currentStore.grid) {
         for (const tile of col) {
             tile.endSegment = null;
         }
@@ -343,7 +301,7 @@ const drawSegment = (segment, color) => {
         ctx.stroke();
     }
     ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = color ? color : pink;
+    ctx.strokeStyle = color ? color : "pink";
     ctx.stroke();
 };
 const makeSegment = (tile1, tile2, parentSeg = null, diagonal = false) => {
@@ -360,17 +318,15 @@ const makeSegment = (tile1, tile2, parentSeg = null, diagonal = false) => {
     return segment;
 };
 const getFullPathFromEndSegment = (endSeg) => {
-    // Get chaing of parents until there is no parent
+    // Get chain of parents until there is no parent
     const path = [endSeg];
     let parentSeg = endSeg.parentSeg;
     let tooMuch = 0;
-    // console.log(endSeg);
-    // console.log(`parentSeg: ${parentSeg}`);
-    while (parentSeg != null && tooMuch < 1000) {
+    const safetyEscape = 3000;
+    while (parentSeg != null && tooMuch < safetyEscape) {
+        // add parentSeg to beginning of path
         path.unshift(parentSeg);
         parentSeg = parentSeg.parentSeg;
-
-        // console.log("parentSeg", parentSeg);
         tooMuch++;
     }
     return path;
@@ -493,7 +449,7 @@ const getShortestRouteByClosestBothEnds = (tiles) => {
     }
     // Reverse orderedWPfromEnd, and add it to the end of orderedWPfromStart
     orderedWPfromEnd.reverse();
-    orderedWPs = [...orderedWPfromStart, ...orderedWPfromEnd];
+    const orderedWPs = [...orderedWPfromStart, ...orderedWPfromEnd];
     // returned ordered list
     return orderedWPs;
 };
@@ -533,7 +489,7 @@ const getTileByIndices = (colIndex, rowIndex) => {
 
 const tspShortestByMutation = (waypoints) => {
     console.log("tspShortestByMutation()");
-    // Get total distance for a set of waypoints
+    // Get total distance for a set of waypoints (tiles)
     // waypoints does not include entrance, checkout
 
     const getWaypointsDistance = (tiles, order) => {
@@ -548,6 +504,10 @@ const tspShortestByMutation = (waypoints) => {
             const tileB = tiles[tileBIndex];
             // console.log('findPathFromAtoB...');
             const path = findPathFromAtoB(tileA, tileB);
+            paths.push(path);
+            drawDotAtTile(tileB);
+            drawPath(path);
+            console.log("PATH: ", path);
             dist += getPathDistance(path);
             // dist += lookupDistance(tileA, tileB);
         }
@@ -757,9 +717,9 @@ const tspShortestByMutation = (waypoints) => {
                     // First time here
                     nextNestedArray[index] = 1;
                     uniqueOrdersTried++;
-                    if (uniqueOrdersTried >= maxTries) {
-                        evolveRunning = false;
-                    }
+                    // if (uniqueOrdersTried >= maxTries) {
+                    //     evolveRunning = false;
+                    // }
                     return false;
                 } else {
                     // Been here before
@@ -767,7 +727,7 @@ const tspShortestByMutation = (waypoints) => {
                     nextNestedArray[index]++;
                     return true;
                 }
-                console.log("nextNestedArray[index]", nextNestedArray[index]);
+                // console.log("nextNestedArray[index]", nextNestedArray[index]);
             }
         }
     };
@@ -785,7 +745,7 @@ const tspShortestByMutation = (waypoints) => {
     let uniqueOrdersTried = 0;
     const ordersTried = [];
 
-    const maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
+    let maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
     const populationNum = maxTries;
     const maxCheckNewOrderLoops = Math.pow(waypoints.length * 0.5, 2);
 
@@ -840,22 +800,73 @@ const tspShortestByMutation = (waypoints) => {
         // console.log('checkSwapAllPopulation...');
         // checkSwapEvery2PointsOfPopulation();
         tries++;
-        console.log("tries: ", tries, "of ",maxTries);
+        console.log("tries: ", tries, "of ", maxTries);
         // console.log("unique orders: ", uniqueOrdersTried);
         // console.log("collisions: ", foundRepeat - startCollision);
-        console.log(` ----- try ${tries} took ${(performance.now()-startIteration).toLocaleString("en","us")}`);
+        console.log(
+            ` ----- try ${tries} took ${(
+                performance.now() - startIteration
+            ).toLocaleString("en", "us")}`
+        );
     } while (tries < maxTries);
-    console.log('-----------------------------')
-    console.log("lookedForRepeat: ",lookedForRepeat);
+    console.log("-----------------------------");
+    console.log("lookedForRepeat: ", lookedForRepeat);
     console.log("unique orders: ", uniqueOrdersTried);
     console.log("collisions: ", foundRepeat);
-    console.log(uniqueOrdersTried+foundRepeat);
+    console.log(uniqueOrdersTried + foundRepeat);
 
     return reorderWaypoints(waypoints, bestOrder);
 };
 
+function redrawGrid(keepPaths = false) {
+    // Re-draws grid
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    for (const col of currentStore.grid) {
+        for (const tile of col) {
+            if(tile.obstacle)drawTile(tile);
+            if (keepPaths && tile.endSegment) {
+                drawSegment(tile.endSegment.fromTile, tile.endSegment.toTile);
+            } else {
+                tile.endSegment = null;
+            }
+        }
+    }
+}
 
+const drawDotAtTile = (tile,color="pink") => {
+    ctx.fillStyle = color;
+    const x = tile.col * tileSize+tileSize*0.5;
+    const y = tile.row * tileSize+tileSize*0.5;
+    const radius = tileSize*1.6;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+}
 
+const drawTile = (tile) => {
+    ctx.fillStyle = "#333";
+    const x = tile.col * tileSize;
+    const y = tile.row * tileSize;
+    ctx.beginPath();
+    ctx.rect(x, y, tileSize, tileSize);
+    ctx.fill();
+};
 
+const getTileCenterOnCanvas = (tile) => {
+    // console.log('getTileCenterOnCanvas: ',tile);
+    const x = tileSize * tile.col + tileSize * 0.5;
+    const y = tileSize * tile.row + tileSize * 0.5;
+    return { x, y };
+};
+
+// Math Functions
+
+function factorialize(num) {
+    if (num < 0) return -1;
+    else if (num === 0) return 1;
+    else {
+        return num * factorialize(num - 1);
+    }
+}
 
 export default Pathfinding;

@@ -53,6 +53,7 @@ const Launch = ({
                 updateShoppingList(data4.listItems);
                 setStoreID(data1.storeID);
                 setCurrentStore(data3.store);
+                console.log("TILE: ",data3.store.grid[0][0]);
                 
             } else {
                 navigate("/login");
