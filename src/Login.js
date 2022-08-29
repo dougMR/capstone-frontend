@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import APIUrl from "./APIUrl";
 const Login = () => {
     console.log("Hello from Login Component");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [searchParams] = useSearchParams();
+    const isNewUser = searchParams.get("newUser");
     const navigate = useNavigate();
     const login = async (evt) => {
         evt.preventDefault();
@@ -19,22 +21,21 @@ const Login = () => {
                     username,
                     password,
                 }),
-                credentials : "include"
+                credentials: "include",
             });
             const data = await response.json();
 
-            if(data.error){
+            if (data.error) {
                 setError(data.error);
             } else {
                 setError("");
-                // redirect to Admin, login successful
+                // redirect to Launch, login successful
 
-                setTimeout(()=>{
+                setTimeout(() => {
                     navigate("/");
-                }, 1000 );
-                
+                }, 3000);
             }
-            console.log("login data: ",data);
+            console.log("login data: ", data);
         } catch (error) {
             setError(`Login API call failed. ERROR: ${error}`);
             console.error(error);
@@ -43,6 +44,7 @@ const Login = () => {
     return (
         <div>
             <h1>Login</h1>
+            {isNewUser && <p>Your account has been created. Please log in.</p>}
             <form onSubmit={login}>
                 <div className="">
                     <label htmlFor="username" className="">
@@ -79,6 +81,13 @@ const Login = () => {
                 <button type="submit" className="">
                     Login
                 </button>
+                <Link
+                    to="/create-account"
+                    className="button"
+                    style={{ marginLeft: "1em" }}
+                >
+                    Create New Account
+                </Link>
             </form>
         </div>
     );

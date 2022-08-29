@@ -1,20 +1,38 @@
+import APIUrl from "./APIUrl";
 import Pathfinding from "./Pathfinding";
 import { useEffect, useState, useRef } from "react";
-const Map = ({ currentStore, shoppingList }) => {
+
+// Non-state variables
+let startMapWidth, startMapHeight;
+let tileSize = 0;
+let mapWidth = 300;
+let mapHeight = 300;
+let mapTop = 0,
+    mapLeft = 0;
+// let paths = [];
+
+const Map = ({ currentStore, shoppingList, updateShoppingList, paths, setPaths }) => {
     // console.log('currentStore: ',currentStore);
-    const [zoom, setZoom] = useState(1);
-    const [lastZoom, setLastZoom] = useState(1);
-    // const [tileSize, setTileSize] = useState();
+    const [zoom, setZoom] = useState(0);
+    const [lastZoom, setLastZoom] = useState(0);
+    // const [tileSize, setTileSize] = useState(0);
     const [imageLoadDone, setImageLoadDone] = useState(false);
     const [dragging, setDragging] = useState(false);
     const [startDragPosition, setStartDragPosition] = useState({});
-    const [mapWidth, setMapWidth] = useState(300);
-    const [mapHeight, setMapHeight] = useState(300);
-    const [mapLeft, setMapLeft] = useState(0);
-    const [mapTop, setMapTop] = useState(0);
+    // const [mapWidth, setMapWidth] = useState(300);
+    // const [mapHeight, setMapHeight] = useState(300);
+    // const [mapLeft, setMapLeft] = useState(0);
+    // const [mapTop, setMapTop] = useState(0);
+    
+    const [ctx, setCtx] = useState(null);
 
-    const startMapWidth = useRef(0);
-    const startMapHeight = useRef(0);
+    // v Start startTile as entranceTile.
+    //   After an item is crossed off, set this to the last crossed-off item, because that's likely where the user is closest to
+    const [startTile, setStartTile] = useState(null);
+    const [boolFlag, setBoolFlag] = useState(true);
+
+    // const startMapWidth = useRef(0);
+    // const startMapHeight = useRef(0);
     const zoomSliderRef = useRef(null);
     const mapImgRef = useRef(null);
     const mapHolderRef = useRef(null);
@@ -24,8 +42,10 @@ const Map = ({ currentStore, shoppingList }) => {
     const imageLoaded = () => {
         // Initialize image and canvas
         const mapHolder = mapHolderRef.current;
-
         console.log("imageLoaded()");
+        //
+        // v Should I do this JS DOM stuff with state?  Even though it gets set only once?
+
         // make it square
         mapHolder.style.height = `${mapHolder.offsetWidth}px`;
         const mapImg = mapImgRef.current;
@@ -36,11 +56,19 @@ const Map = ({ currentStore, shoppingList }) => {
             const resizeRatio = mapHolder.offsetHeight / mapImg.offsetHeight;
             mapImg.style.width = `${resizeRatio * 100}%`;
         }
+
+        startMapWidth = mapImg.offsetWidth;
+        startMapHeight = mapImg.offsetHeight;
+        console.log("startMapWidth: ", startMapWidth);
+        console.log("startMapHeight: ", startMapHeight);
+
         console.log("startMapWidth, height: ", mapImg.width, mapImg.height);
-        startMapWidth.current = mapImg.offsetWidth;
-        startMapHeight.current = mapImg.offsetHeight;
-        setMapWidth(startMapWidth.current);
-        setMapHeight(startMapHeight.current);
+        // startMapWidth.current = mapImg.offsetWidth;
+        // startMapHeight.current = mapImg.offsetHeight;
+        // setMapWidth(startMapWidth);
+        mapWidth = startMapWidth;
+        // setMapHeight(startMapHeight);
+        mapHeight = startMapHeight;
         console.log("startMapWidth, height: ", mapImg.width, mapImg.height);
         setImageLoadDone(true);
 
@@ -48,24 +76,17 @@ const Map = ({ currentStore, shoppingList }) => {
         const mapCanvas = mapCanvasRef.current;
         const context = mapCanvas.getContext("2d");
         mapContextRef.current = context;
+        setCtx(mapContextRef.current);
         context.fillStyle = "rgba(200,250,255,0.5)";
         context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-
+        setStartTile(currentStore.entranceTile);
         console.log(
             "context.canvas.width/height: ",
             context.canvas.width,
             context.canvas.height
         );
-        // if (imageLoadDone) {
-        //     drawGrid();
-        // } else {
-        //     console.log("imageLoadDone: ", imageLoadDone);
-        // }
+        setZoom(1);
     };
-
-    // useEffect(() => {
-    //     drawGrid();
-    // });
 
     useEffect(() => {
         // for dragging the map
@@ -78,27 +99,11 @@ const Map = ({ currentStore, shoppingList }) => {
             window.removeEventListener("pointerup", endTouchCanvas);
             window.removeEventListener("mousemove", moveOverCanvas);
         };
-    }, );
+    });
 
     useEffect(() => {
-        if (mapContextRef.current) {
-            setTimeout(() => {
-                drawGrid();
-                plotShoppingItemsOnMap();
-                drawShoppingPath();
-            }, 0);
-        }
-    }, [mapContextRef.current,shoppingList]);
-
-    // useEffect(() => {
-    //     if (mapContextRef.current) {
-    //         setTimeout(() => {
-    //             drawGrid();
-    //             plotShoppingItemsOnMap();
-    //             drawShoppingPath();
-    //         }, 0);
-    //     }
-    // }, [shoppingList]);
+        drawMap();
+    }, [ctx, shoppingList]);
 
     useEffect(() => {
         /* zoom was changed, 
@@ -106,35 +111,45 @@ const Map = ({ currentStore, shoppingList }) => {
         redraw canvas map
         */
         const handleZoomChange = () => {
+            console.log("handleZoomChange(), startMapWidth: ", startMapWidth);
+            if (!startMapWidth) return;
             // zoom is 1 = 100%
-
             const zoomChange = zoom / lastZoom;
             setLastZoom(zoom);
-
-            // console.log("ZOOM: ", zoom);
-            // console.log("startMapWidth: ", startMapWidth.current);
-            // console.log("imageLoadDone: ", imageLoadDone);
             // Calculate Map dimensions
-            setMapWidth(startMapWidth.current * zoom);
-            setMapHeight(startMapHeight.current * zoom);
+            // console.log("PRE-ZOOM MAPWIDTH: ",mapWidth);
+            // setMapWidth(startMapWidth.current * zoom);
+            // setMapHeight(startMapHeight.current * zoom);
+            // console.log("ZOOM: ",zoom);
+            // console.log("START MAP WIDTH: ",startMapWidth.current);
+            // console.log("TARGET MAP WIDTH: ",startMapWidth.current * zoom);
+            // console.log("post-ZOOM MAPWIDTH: ",mapWidth);
+            // recenterOnResize(zoomChange);
+            // setTileSize(mapWidth / currentStore.grid.length);
 
+            console.log("PRE-ZOOM MAPWIDTH: ", mapWidth);
+            console.log("ZOOM: ", zoom);
+            console.log("START MAP WIDTH: ", startMapWidth);
+            console.log("TARGET MAP WIDTH: ", startMapWidth * zoom);
+            // setMapWidth(startMapWidth * zoom);
+            mapWidth = startMapWidth * zoom;
+            // setMapHeight(startMapHeight * zoom);
+            mapHeight = startMapHeight * zoom;
+            console.log("post-ZOOM MAPWIDTH: ", mapWidth);
+            console.log("currentStore: ", currentStore);
+            console.log("currentStore.grid.length: ", currentStore.grid.length);
+            // setTileSize(mapWidth / currentStore.grid.length);
+            tileSize = mapWidth / currentStore.grid.length;
+            // console.log("tileSize: ", tileSize);
             recenterOnResize(zoomChange);
-            // recalcTileSize();
-            // redrawGrid(true);
-            // if (imageLoadDone) {
-            //     drawGrid();
-            // } else {
-            //     console.log("imageLoadDone: ", imageLoadDone);
-            // }
-            if (mapContextRef.current) {
-                setTimeout(() => {
-                    drawGrid();
-                    plotShoppingItemsOnMap();
-                }, 0);
-            }
+            drawMap();
         };
         handleZoomChange();
     }, [zoom]);
+
+    useEffect(()=>{
+        drawMap();
+    },[paths]);
 
     const recenterOnResize = (zoomChangeRatio) => {
         const mapHolder = mapHolderRef.current;
@@ -150,6 +165,9 @@ const Map = ({ currentStore, shoppingList }) => {
 
         const newMidX = halfW - midX * zoomChangeRatio;
         const newMidY = halfH - midY * zoomChangeRatio;
+        
+        // newX = newMidX - midX;
+        // newY = newMidY - midY;
         constrainMapXY(newMidX, newMidY);
     };
 
@@ -164,11 +182,12 @@ const Map = ({ currentStore, shoppingList }) => {
             mapCanvasRef.current.offsetLeft + xDist,
             mapCanvasRef.current.offsetTop + yDist
         );
+        setBoolFlag(!boolFlag);
     };
 
     const constrainMapXY = (x, y) => {
         const mapHolder = mapHolderRef.current;
-        const mapCanvas = mapCanvasRef.current;
+        // const mapCanvas = mapCanvasRef.current;
         const mapImg = mapImgRef.current;
         // Keep map inside mapHolder
         if (x === undefined || y === undefined) {
@@ -177,14 +196,20 @@ const Map = ({ currentStore, shoppingList }) => {
         }
         // Constrain x / y to never have gap between map and holder
         // unless map is smaller than holder in that dimension
-        const minX = mapHolder.clientWidth - mapImg.clientWidth;
-        const minY = mapHolder.clientHeight - mapImg.clientHeight;
+        const holderW = mapHolder.clientWidth;
+        const holderH = mapHolder.clientHeight;
+        const imgW = mapImg.clientWidth;
+        const imgH = mapImg.clientHeight;
+        const minX = imgW < holderW ? (holderW - imgW) / 2 : holderW - imgW;
+        const minY = imgH < holderH ? (holderH - imgH) / 2 : holderH - imgH;
         const newX = Math.max(minX, Math.min(0, x));
         const newY = Math.max(minY, Math.min(0, y));
 
         // Position mapCanvas and mapImg
-        setMapLeft(newX);
-        setMapTop(newY);
+        // setMapLeft(newX);
+        // setMapTop(newY);
+        mapLeft = newX;
+        mapTop = newY;
     };
 
     const changedSlider = (evt) => {
@@ -213,7 +238,7 @@ const Map = ({ currentStore, shoppingList }) => {
 
     const moveOverCanvas = (evt) => {
         if (dragging) {
-            console.log("dragging...");
+            // console.log("dragging...");
             // Drag Map
             const mousePos = getPointerXY(evt);
             dragMap(
@@ -232,14 +257,23 @@ const Map = ({ currentStore, shoppingList }) => {
     // DRAWING FUNCTIONS
     ////////////////////////
 
-    const drawGrid = () => {
-        const ctx = mapContextRef.current;
+    const drawMap = () => {
         if (!ctx) return;
+        setTimeout(() => {
+            drawGrid();
+            drawShoppingPath();
+            plotShoppingItemsOnMap();
+        }, 0);
+    };
+
+    const drawGrid = () => {
+        if (!ctx) return;
+        console.log("drawGrid(), tileSize: ", tileSize);
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
+
         ctx.lineWidth = Math.min(tileSize * 0.1, 1);
         ctx.strokeStyle = "rgba(0,0,0,0.25)";
-        ctx.fillStyle = "#333";
+        ctx.fillStyle = "#7894E1";
 
         for (const col of currentStore.grid) {
             for (const tile of col) {
@@ -255,9 +289,9 @@ const Map = ({ currentStore, shoppingList }) => {
     };
 
     const plotShoppingItemsOnMap = () => {
-        const ctx = mapContextRef.current;
         if (!ctx) return;
-        const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
+        // const tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
+        console.log("plotShoppintItemsOnMap(), tileSize: ", tileSize);
         const halfTile = tileSize * 0.5;
         const radius = Math.max(halfTile * 2, 5);
         // console.log("RADIUS: ",radius);
@@ -291,13 +325,119 @@ const Map = ({ currentStore, shoppingList }) => {
         }
     };
 
-    const drawShoppingPath = () => {
-        const ctx = mapContextRef.current;
+    //
+    // Calculate order of items for shortest path
+    //
+    const calculateOrder = async () => {
         const store = currentStore;
         const activeItems = shoppingList.filter((item) => {
             return item.active && !item.crossedOff;
         });
-        Pathfinding.getAndDrawPath(activeItems, store, ctx);
+        const inactiveItems = shoppingList.filter((item) => {
+            return !item.active || item.crossedOff;
+        });
+        console.log("ACTIVE ITEMS: ", activeItems);
+        const results = Pathfinding.getShoppingPath(
+            activeItems,
+            store,
+            startTile
+        );
+        
+        // put active items' order in db
+        for (
+            let itemIndex = 0;
+            itemIndex < results.orderedItems.length;
+            itemIndex++
+        ) {
+            results.orderedItems[itemIndex].sortOrder = itemIndex;
+        }
+
+        const response = await fetch(
+            `${APIUrl}/list-items/order/`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    items: results.orderedItems,
+                }),
+                credentials: "include",
+            }
+        );
+
+        const data = await response.json();
+        // check for error?
+        setPaths(results.paths);
+        console.log('paths: ',results.paths);
+        // join active items with crossed-off & inactive items
+        const orderedWholeList = results.orderedItems.concat(inactiveItems);
+        updateShoppingList(orderedWholeList);
+        console.log("MAP PATHS: ", paths);
+        // drawMap();
+    };
+
+    const drawShoppingPath = () => {
+        console.log("drawShoppingPaths(): ", paths.length);
+        for (const path of paths) {
+            drawPath(path);
+        }
+    };
+
+    const drawPath = (pathAr) => {
+        // Expects an array of segments
+        if (!ctx) return;
+        for (const segment of pathAr) {
+            drawSegment(segment, "yellow");
+        }
+    };
+
+    /*
+    PATH SEGMENT
+    */
+
+    const drawSegment = (segment, color) => {
+        if (!ctx) return;
+        // Get tile center on canvas
+        const h0coord = getTileCenterOnCanvas(segment.fromTile);
+        const h1coord = getTileCenterOnCanvas(segment.toTile);
+        const strokeWidth = Math.ceil(tileSize * 0.1);
+        const headlen = strokeWidth * 2;
+        ctx.beginPath();
+        ctx.moveTo(h0coord.x, h0coord.y);
+        ctx.lineTo(h1coord.x, h1coord.y);
+
+        // arrow head
+        var angle = Math.atan2(h1coord.y - h0coord.y, h1coord.x - h0coord.x);
+        // ctx.moveTo(tox, toy);
+        // path from corner of head to arrow tip
+        ctx.moveTo(
+            h1coord.x - headlen * Math.cos(angle - Math.PI / 7),
+            h1coord.y - headlen * Math.sin(angle - Math.PI / 7)
+        );
+        ctx.lineTo(h1coord.x, h1coord.y);
+        //path from the tip of arrow to the other side point
+        ctx.lineTo(
+            h1coord.x - headlen * Math.cos(angle + Math.PI / 7),
+            h1coord.y - headlen * Math.sin(angle + Math.PI / 7)
+        );
+
+        ctx.closePath();
+        if (color) {
+            ctx.lineWidth = strokeWidth * 3;
+            ctx.strokeStyle = "rgba(0,0,0,0.6)";
+            ctx.stroke();
+        }
+        ctx.lineWidth = strokeWidth;
+        ctx.strokeStyle = color ? color : "pink";
+        ctx.stroke();
+    };
+
+    const getTileCenterOnCanvas = (tile) => {
+        // console.log('getTileCenterOnCanvas: ',tile);
+        const x = tileSize * tile.col + tileSize * 0.5;
+        const y = tileSize * tile.row + tileSize * 0.5;
+        return { x, y };
     };
 
     return (
@@ -346,6 +486,7 @@ const Map = ({ currentStore, shoppingList }) => {
                 className="slider"
                 id="zoom-range"
             />
+            <button onPointerDown={calculateOrder}>calculate path</button>
         </div>
     );
 };

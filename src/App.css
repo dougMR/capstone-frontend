@@ -256,7 +256,7 @@ Shopping Map
 
 #list,
 #search-results {
-    min-width: 70vw;
+    /* min-width: 70vw; */
 }
 
 .list-item {

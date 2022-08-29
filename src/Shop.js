@@ -4,25 +4,10 @@ import { useEffect, useState } from "react";
 import APIUrl from "./APIUrl";
 
 const Shop = ({ shoppingList, updateShoppingList, currentStore }) => {
+    const [paths, setPaths] = useState([]);
     console.log(" - Hello from Shop Component");
-    const mapShoppingList = () => {
-        // get shopping list items' tiles
-        // pathfind those tiles, starting from currentStore.entranceTile, ending on currentStore.checkoutTile
-        // order list items by their tiles in the path
-        //
-    };
-    useEffect(() => {
-        const updateShoppingList = async () => {
-            // Get current shopping list
-            // order list to shopping path
-            // set currentItem to top list item
-            // set procuredItems to number of list items crossed off
-            // set remainingItems to active items - crossed-off items
-        };
-        // updateShoppingList();
-    }, []);
-
     const checkOffCurrentItem = async () => {
+        console.log("Shop > checkOffCurrentItem()");
         const item = shoppingList[0];
         const response = await fetch(
             `${APIUrl}/list-item/crossed-off/${item.listItemID}/${true}`,
@@ -32,11 +17,17 @@ const Shop = ({ shoppingList, updateShoppingList, currentStore }) => {
                 credentials: "include",
             }
         );
+        // remove first path from paths
+        const newPaths = [...paths];
+        newPaths.shift();
+        setPaths(newPaths);
+        
         const data = await response.json();
         console.log("crossedOff? : ", data.listItems[0].crossedOff);
         updateShoppingList(data.listItems);
     };
     const getItemsProcured = () => {
+        console.log("Shop > getItemsProcured() shoppingList:",shoppingList);
         return shoppingList.filter((item) => item.active && item.crossedOff)
             .length;
     };
@@ -80,7 +71,7 @@ const Shop = ({ shoppingList, updateShoppingList, currentStore }) => {
                 {/* Map  */}
                 {/* touch on item dots to bring up that item as Current Item (?)  */}
                 <div id="map-window">
-                    <Map currentStore={currentStore} shoppingList={shoppingList}/>
+                    <Map currentStore={currentStore} shoppingList={shoppingList} updateShoppingList={updateShoppingList} paths={paths} setPaths={setPaths}/>
                 </div>         
             </div>
             <div id="controls" className="app-row">

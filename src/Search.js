@@ -2,27 +2,31 @@ import APIUrl from "./APIUrl";
 import { useState } from "react";
 import ListItem from "./ListItem";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
-const Search = ({ updateShoppingList, currentStore }) => {
+const Search = ({ updateShoppingList, shoppingList, currentStore }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const navigate = useNavigate();
 
-    const getInventory = async () => {
-        const response = await fetch(`${APIUrl}/store/inventory/${currentStore.id}`);
-        const data = await response.json();
-        const inventory = data.inventory;
-        console.log('data: ',data);
-        const items = [];
-        for(const inv of inventory){
-            // get Item
-            const resp = await fetch(`${APIUrl}/item/${inv.item_id}`);
-            const dat = await resp.json();
-            items.push(dat.item);
-        }
-        console.log("Store Inventory: ",items);
-    };
-    getInventory();
+    useEffect(()=>{
+        const getInventory = async () => {
+            const response = await fetch(`${APIUrl}/store/inventory/${currentStore.id}`);
+            const data = await response.json();
+            const inventory = data.inventory;
+            console.log('data: ',data);
+            const items = [];
+            for(const inv of inventory){
+                // get Item
+                const resp = await fetch(`${APIUrl}/item/${inv.item_id}`);
+                const dat = await resp.json();
+                items.push(dat.item);
+            }
+            console.log("Store Inventory: ",items);
+        };
+        getInventory();
+    },[]);
+    
 
     const searchForItem = async (evt) => {
         evt.preventDefault();
@@ -36,6 +40,7 @@ const Search = ({ updateShoppingList, currentStore }) => {
         setSearchResults(data.items);
         console.log("searchResults for ", searchTerm, ": ", data.items);
     };
+
     const selectItem = async (item) => {
         console.log("selecting item: ", item);
         const response = await fetch(`${APIUrl}/list-item`, {
@@ -58,6 +63,14 @@ const Search = ({ updateShoppingList, currentStore }) => {
             navigate("/list");
         }
     };
+
+    const checkAlreadyOnList = (item) => {
+        const itemIndex = shoppingList.findIndex(listItem=>listItem.name===item.name);
+        console.log("checkAlreadyOnList: ",item);
+        console.log("IS ON LIST: ",itemIndex);
+        return itemIndex !== -1;
+    }
+
     return (
         <div>
             <h1>Search - {currentStore.name}</h1>
@@ -80,10 +93,14 @@ const Search = ({ updateShoppingList, currentStore }) => {
                 </button>
             </form>
             {searchResults.map((item) => {
+                const onList = checkAlreadyOnList(item);
+                if(onList){
+                    item.name += " (ON LIST)";
+                }
                 console.log("item: ", item);
                 item.notListItem = true;
                 item.active = true;
-                item.onclick = (evt) => selectItem(item);
+                if(!onList)item.onclick = (evt) => selectItem(item);
                 return <ListItem key={item.inventoryID} item={item} />;
             })}
         </div>

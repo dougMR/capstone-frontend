@@ -12,7 +12,6 @@ const secret = "SECRET";
 const waypoints = [];
 const paths = [];
 let currentStore = null;
-let ctx = null;
 let tileSize;
 let entranceTile, checkoutTile;
 const Pathfinding = {
@@ -20,38 +19,38 @@ const Pathfinding = {
         console.log("hello. It's ", secret);
     },
 
-    getAndDrawPath: function (shoppingList, theCurrentStore, theCtx) {
+    getShoppingPath: function (shoppingList, theCurrentStore, theEntranceTile) {
+        console.log("Pathfinding > getShoppingPath()");
+        console.log("shoppingList: ",shoppingList);
         currentStore = theCurrentStore;
-        ctx = theCtx;
-        entranceTile = currentStore.entranceTile;
+        entranceTile = theEntranceTile;
         checkoutTile = currentStore.checkoutTile;
-        console.log("ENTRANCE TILE: ", entranceTile);
-        console.log("CHECKOUT TILE: ", checkoutTile);
-        tileSize = ctx.canvas.offsetWidth / currentStore.grid.length;
+        // console.log("ENTRANCE TILE: ", entranceTile);
+        // console.log("CHECKOUT TILE: ", checkoutTile);
+        clearPaths();
+        waypoints.length = 0;
         for (const item of shoppingList) {
             waypoints.push(
                 getTileByIndices(item.col, item.row)
-                // {
-                // col: item.col,
-                // diagonal: undefined,
-                // endSegment: null,
-                // neighbors: getTileByIndices(item.col,item.row).neighbors,
-                // obstacle: false
-                // row: 87
-                // size: 10
-                // }
             );
         }
-        console.log("WAYPOINTS: ", waypoints.length);
+        console.log("Pathfinding > unordered WAYPOINTS: ", waypoints);
         const orderedWPs = tspShortestByMutation(waypoints);
-        // Draw path
-        // Draw all the paths between waypoints
-        redrawGrid();
-        console.log("PATHS: ",paths.length);
-        for (const path of paths) {
-            drawPath(path);
+        for (let o = 0; o < orderedWPs.length - 1; o++) {
+            const tileA = orderedWPs[o];
+            const tileB = orderedWPs[o + 1];
+            const path = findPathFromAtoB(tileA, tileB);
+            paths.push(path);
         }
-        return paths;
+        console.log("Pathfinding > orderedWPs: ",orderedWPs);
+        // Reorder shopping list
+        const orderedItems = [];
+        const itemWPs = orderedWPs.slice(1,-1);
+        for(const tile of itemWPs){
+            orderedItems.push(shoppingList.find(item => item.col === tile.col && item.row === tile.row));
+        }
+        console.log("orderedItems: ",orderedItems);
+        return {paths,orderedItems};
     },
 };
 
@@ -82,9 +81,9 @@ const Pathfinding = {
 // A path is an array of segments
 
 const findPathFromAtoB = (A, B) => {
-    console.log("=== findPathFromAtoB ");
-    console.log("A: ", A);
-    console.log("B: ", B);
+    // console.log("=== findPathFromAtoB ");
+    // console.log("A: ", A);
+    // console.log("B: ", B);
     // A and B are tile/tile objects
     // Find Path from tile A to tile B
     // Returns Array of segments, or null
@@ -98,7 +97,7 @@ const findPathFromAtoB = (A, B) => {
     // Keep track of all the segments we put down last iteration
     const lastSegs = [A.endSegment];
 
-    console.log("LAST SEG: ", lastSegs[0]);
+    // console.log("LAST SEG: ", lastSegs[0]);
 
     // Handle case A === B
     if (A === B) {
@@ -192,7 +191,7 @@ const findPathFromAtoB = (A, B) => {
                             // Found Target!
                             // **************
                             //
-                            console.log("FOUND TARGET");
+                            // console.log("FOUND TARGET");
                             foundTarget = true;
                             const fullPath = getFullPathFromEndSegment(newSeg);
                             clearSegsFromTiles();
@@ -219,7 +218,7 @@ const findPathFromAtoB = (A, B) => {
             break;
         } else {
             // Keep going
-            console.log("KEEP GOING, ", newSegs.length);
+            // console.log("KEEP GOING, ", newSegs.length);
             lastSegs.length = 0;
             lastSegs.push(...newSegs);
         }
@@ -236,27 +235,22 @@ const drawPathAtoB = (Atile, Btile, drawThisPathOnly = false) => {
         console.log("Can't get there from here");
     } else {
         if (drawThisPathOnly) clearPaths();
-        paths.push(myPath);
-        drawPath(myPath);
+        // paths.push(myPath);
+
+        // drawPath(myPath);
     }
     return myPath;
 };
-const drawPath = (pathAr) => {
-    // Expects an array of segments
-    console.log("DRAW PATH: ", pathAr[0]);
-    for (const segment of pathAr) {
-        segment.draw("yellow");
-    }
-};
+
 
 const clearPaths = () => {
     // console.log('clearPaths()');
     paths.length = 0;
-    redrawGrid();
+    // redrawGrid();
 };
 
 const clearSegsFromTiles = () => {
-    console.log("clearSegsFromTiles()");
+    // console.log("clearSegsFromTiles()");
     for (const col of currentStore.grid) {
         for (const tile of col) {
             tile.endSegment = null;
@@ -264,55 +258,16 @@ const clearSegsFromTiles = () => {
     }
 };
 
-/*
-    PATH SEGMENT
-*/
 
-const drawSegment = (segment, color) => {
-    // console.log("drawSegment()", segment);
-    // Get tile center on canvas
-    const h0coord = getTileCenterOnCanvas(segment.fromTile);
-    const h1coord = getTileCenterOnCanvas(segment.toTile);
-    const strokeWidth = Math.ceil(tileSize * 0.1);
-    const headlen = strokeWidth * 2;
-    ctx.beginPath();
-    ctx.moveTo(h0coord.x, h0coord.y);
-    ctx.lineTo(h1coord.x, h1coord.y);
-
-    // arrow head
-    var angle = Math.atan2(h1coord.y - h0coord.y, h1coord.x - h0coord.x);
-    // ctx.moveTo(tox, toy);
-    // path from corner of head to arrow tip
-    ctx.moveTo(
-        h1coord.x - headlen * Math.cos(angle - Math.PI / 7),
-        h1coord.y - headlen * Math.sin(angle - Math.PI / 7)
-    );
-    ctx.lineTo(h1coord.x, h1coord.y);
-    //path from the tip of arrow to the other side point
-    ctx.lineTo(
-        h1coord.x - headlen * Math.cos(angle + Math.PI / 7),
-        h1coord.y - headlen * Math.sin(angle + Math.PI / 7)
-    );
-
-    ctx.closePath();
-    if (color) {
-        ctx.lineWidth = strokeWidth * 3;
-        ctx.strokeStyle = "rgba(0,0,0,0.6)";
-        ctx.stroke();
-    }
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = color ? color : "pink";
-    ctx.stroke();
-};
 const makeSegment = (tile1, tile2, parentSeg = null, diagonal = false) => {
     const segment = {
         fromTile: tile1,
         toTile: tile2,
         isDiagonal: diagonal,
-        draw: function (color) {
-            // console.log('this: ',this);
-            drawSegment(this, color);
-        },
+        // draw: function (color) {
+        //     // console.log('this: ',this);
+        //     drawSegment(this, color);
+        // },
         parentSeg,
     };
     return segment;
@@ -504,10 +459,10 @@ const tspShortestByMutation = (waypoints) => {
             const tileB = tiles[tileBIndex];
             // console.log('findPathFromAtoB...');
             const path = findPathFromAtoB(tileA, tileB);
-            paths.push(path);
-            drawDotAtTile(tileB);
-            drawPath(path);
-            console.log("PATH: ", path);
+            // paths.push(path);
+            // drawDotAtTile(tileB);
+            // drawPath(path);
+            // console.log("PATH: ", path);
             dist += getPathDistance(path);
             // dist += lookupDistance(tileA, tileB);
         }
@@ -818,46 +773,41 @@ const tspShortestByMutation = (waypoints) => {
     return reorderWaypoints(waypoints, bestOrder);
 };
 
-function redrawGrid(keepPaths = false) {
-    // Re-draws grid
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    for (const col of currentStore.grid) {
-        for (const tile of col) {
-            if(tile.obstacle)drawTile(tile);
-            if (keepPaths && tile.endSegment) {
-                drawSegment(tile.endSegment.fromTile, tile.endSegment.toTile);
-            } else {
-                tile.endSegment = null;
-            }
-        }
-    }
-}
+// function redrawGrid(keepPaths = false) {
+//     // Re-draws grid
+//     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+//     for (const col of currentStore.grid) {
+//         for (const tile of col) {
+//             if(tile.obstacle)drawTile(tile);
+//             if (keepPaths && tile.endSegment) {
+//                 // drawSegment(tile.endSegment.fromTile, tile.endSegment.toTile);
+//             } else {
+//                 tile.endSegment = null;
+//             }
+//         }
+//     }
+// }
 
-const drawDotAtTile = (tile,color="pink") => {
-    ctx.fillStyle = color;
-    const x = tile.col * tileSize+tileSize*0.5;
-    const y = tile.row * tileSize+tileSize*0.5;
-    const radius = tileSize*1.6;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-}
+// const drawDotAtTile = (tile,color="pink") => {
+//     ctx.fillStyle = color;
+//     const x = tile.col * tileSize+tileSize*0.5;
+//     const y = tile.row * tileSize+tileSize*0.5;
+//     const radius = tileSize*1.6;
+//     ctx.beginPath();
+//     ctx.arc(x, y, radius, 0, 2 * Math.PI);
+//     ctx.fill();
+// }
 
-const drawTile = (tile) => {
-    ctx.fillStyle = "#333";
-    const x = tile.col * tileSize;
-    const y = tile.row * tileSize;
-    ctx.beginPath();
-    ctx.rect(x, y, tileSize, tileSize);
-    ctx.fill();
-};
+// const drawTile = (tile) => {
+//     ctx.fillStyle = "#333";
+//     const x = tile.col * tileSize;
+//     const y = tile.row * tileSize;
+//     ctx.beginPath();
+//     ctx.rect(x, y, tileSize, tileSize);
+//     ctx.fill();
+// };
 
-const getTileCenterOnCanvas = (tile) => {
-    // console.log('getTileCenterOnCanvas: ',tile);
-    const x = tileSize * tile.col + tileSize * 0.5;
-    const y = tileSize * tile.row + tileSize * 0.5;
-    return { x, y };
-};
+
 
 // Math Functions
 

@@ -3,10 +3,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ListItem from "./ListItem";
 const List = ({ shoppingList, updateShoppingList }) => {
-    console.log(" - Hello from List Component");
+    console.log(" - Hello from List Component, shoppingList.length: ",shoppingList.length);
     const [hideInactiveItems, setHideInactiveItems] = useState(false);
     const navigate = useNavigate();
 
+    // 
+    // Make all list items active
+    // 
     const activateAllItems = async (evt) => {
         const response = await fetch(`${APIUrl}/list-items/active/${true}`, {
             method: "PATCH",
@@ -16,10 +19,12 @@ const List = ({ shoppingList, updateShoppingList }) => {
         const data = await response.json();
         updateShoppingList(data.listItems);
     };
+    // 
+    // Make all list items inactive
+    // 
     const deactivateAllItems = async (evt) => {
         const response = await fetch(`${APIUrl}/list-items/active/${false}`, {
             method: "PATCH",
-            // don't need headers if there's no body?
             credentials: "include",
         });
         const data = await response.json();
@@ -29,6 +34,9 @@ const List = ({ shoppingList, updateShoppingList }) => {
         // Show / Hide inactive items
         setHideInactiveItems(!hideInactiveItems);
     };
+    // 
+    // Make all list items not crossed-off
+    // 
     const unCrossOffAllItems = async (evt) => {
         console.log('un-cross-off all items');
         const response = await fetch(`${APIUrl}/list-items/crossed-off/${false}`, {

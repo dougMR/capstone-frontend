@@ -8,6 +8,7 @@ import Launch from "./Launch";
 import Search from "./Search";
 import Layout from "./Layout";
 import StoreSelector from "./StoreSelector";
+import CreateAccount from "./CreateAccount";
 import APIUrl from "./APIUrl";
 console.log("Hello from App.js");
 function App() {
@@ -19,19 +20,23 @@ function App() {
     const [shoppingList, setShoppingList] = useState([]);
 
     const updateShoppingList = (newList) => {
-        newList.sort(sortListByStatus);
+        // console.log("list BEFORE sorting: ",newList);
+        // newList.sort(sortListByStatus);
+        // console.log("list AFTER sorting: ",newList);
         setShoppingList(newList);
-        console.log('SHOPPING LIST: ',newList);
+        console.log("SET SHOPPING LIST: ", newList);
     };
-    // const updateShoppingList = useCallback((newList) => {
-    //     newList.sort(sortListByStatus);
-    //     setShoppingList(newList);
-    //     // console.log("SHOPPING LIST: ", newList);
-    // }, [setShoppingList]);
+
+    useEffect(()=>{
+        const checkAppStatus = async () => {
+            console.log("App > checkAppStatus()");
+        }
+        checkAppStatus();
+    },[]);
 
     useEffect(() => {
-        console.log("currentStore has been set.");
-        console.log("currentStore: ", currentStore);
+        console.log("App > currentStore has been set.");
+        console.log("App > currentStore: ", currentStore);
         // Go to Shopping List view
         // Don't change Old List in db
         //
@@ -49,13 +54,16 @@ function App() {
         //
         // Replace setShoppingList( newList )
 
+        // Same function recreated here, to prevent useEffect() dependency?
         const updateShoppingListDuplicate = (newList) => {
-            newList.sort(sortListByStatus);
+            console.log("UPDATESHOPPINGLISTDUPLICATE() !!!");
+            // newList.sort(sortListByStatus);
             setShoppingList(newList);
-            console.log('SHOPPING LIST: ',newList);
+            console.log("App > SHOPPING LIST: ", newList);
         };
 
         const changeCurrentStoreInDB = async () => {
+            console.log("App > changeCurrentStoreInDB()");
             await fetch(`${APIUrl}/store/${currentStore.id}`, {
                 method: "PUT",
                 credentials: "include",
@@ -63,6 +71,7 @@ function App() {
         };
 
         const loadNewList = async () => {
+            console.log('App > loadNewList()');
             // For now, just grab shoppihng list for this store / user
             // Get Shopping List
             // with item: {listItemID: item.id, inventoryID: inventory_item.id, itemID: item.id, name: item.name, tile: inventory_item.tile}
@@ -79,40 +88,7 @@ function App() {
         }
     }, [currentStore]);
 
-    // Sort List by active / crossed out / inactive
-    const sortListByStatus = (a, b) => {
-        // if a is active and b is active
-        if (a.active && b.active) {
-            // both active
-            if (a.crossedOff && !b.crossedOff) {
-                return 1;
-            } else if (!a.crossedOff && b.crossedOff) {
-                return -1;
-            } else {
-                // both crossed off or both not crossed off
-                return 0;
-            }
-        } else {
-            if (a.active) {
-                return -1;
-            } else if (b.active) {
-                return 1;
-            } else {
-                // both not active
-                if (a.crossedOff && !b.crossedOff) {
-                    return 1;
-                } else if (!a.crossedOff && b.crossedOff) {
-                    return -1;
-                } else {
-                    // both crossed off or both not crossed off
-                    return 0;
-                }
-            }
-        }
-    };
-
-    const sortListByShoppingOrder = (a, b) => {};
-
+    
     return (
         <div id="app-body">
             <BrowserRouter>
@@ -152,6 +128,7 @@ function App() {
                                 <Search
                                     updateShoppingList={updateShoppingList}
                                     currentStore={currentStore}
+                                    shoppingList={shoppingList}
                                 />
                             }
                         />
@@ -174,6 +151,10 @@ function App() {
                                     setCurrentStore={setCurrentStore}
                                 />
                             }
+                        />
+                        <Route
+                            path="/create-account"
+                            element={<CreateAccount />}
                         />
                     </Route>
                 </Routes>

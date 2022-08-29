@@ -60,12 +60,17 @@ const ListItem = ({ item, updateShoppingList }) => {
         setOpen(false);
     };
 
+    // Toggle Item controls
+    const toggleItemControls = (evt) => {
+        setOpen(!open);
+    }
+
     return (
         <div
             className={`list-item no-select ${item.active ? " active" : ""}${
                 item.crossedOff ? " crossed-off" : ""
             }${open ? " open" : ""}`}
-            onPointerDown={item.onclick ? item.onclick : openItemControls}
+            onPointerDown={item.onclick ? item.onclick : toggleItemControls}
         >
             <div className="item-name">
                 {item.name}
@@ -73,10 +78,12 @@ const ListItem = ({ item, updateShoppingList }) => {
                 <span style={{ fontSize: "0.5em" }}>
                     id: [{item.listItemID}], storeID: [{item.storeID}],
                     item.active: [{item.active ? "true" : "false"}],
-                    item.crossedOff: [{item.crossedOff ? "true" : "false"}]
+                    item.crossedOff: [{item.crossedOff ? "true" : "false"}],
+                    order: [{item.sortOrder}]
                 </span>
             </div>
             {item.notListItem ? (
+                // Don't include controls
                 ""
             ) : (
                 <div className={`item-controls`}>
@@ -89,6 +96,7 @@ const ListItem = ({ item, updateShoppingList }) => {
                         onPointerDown={toggleItemActive}
                     ></button>
                     <button
+                    style={{display: item.active ? "inline-block" : "none"}}
                         className="item-button cross-off-button"
                         onPointerDown={(evt) => {
                             toggleItemCrossedOff(item);
