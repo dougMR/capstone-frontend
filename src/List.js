@@ -1,15 +1,27 @@
 import APIUrl from "./APIUrl";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ListItem from "./ListItem";
-const List = ({ shoppingList, updateShoppingList }) => {
-    console.log(" - Hello from List Component, shoppingList.length: ",shoppingList.length);
+const List = () => {
+    console.log(" - Hello from List Component");
     const [hideInactiveItems, setHideInactiveItems] = useState(false);
+    const [shoppingList, setShoppingList] = useState([]);
     const navigate = useNavigate();
 
-    // 
+    useEffect(() => {
+        const getListItems = async () => {
+            const response = await fetch(`${APIUrl}/list-items`, {
+                credentials: "include",
+            });
+            const data = await response.json();
+            setShoppingList(data.listItems);
+            console.log("List > data: ", data);
+        };
+        getListItems();
+    }, []);
+    //
     // Make all list items active
-    // 
+    //
     const activateAllItems = async (evt) => {
         const response = await fetch(`${APIUrl}/list-items/active/${true}`, {
             method: "PATCH",
@@ -17,39 +29,60 @@ const List = ({ shoppingList, updateShoppingList }) => {
             credentials: "include",
         });
         const data = await response.json();
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
     };
-    // 
+    //
     // Make all list items inactive
-    // 
+    //
     const deactivateAllItems = async (evt) => {
         const response = await fetch(`${APIUrl}/list-items/active/${false}`, {
             method: "PATCH",
             credentials: "include",
         });
         const data = await response.json();
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
     };
     const toggleInactive = (evt) => {
         // Show / Hide inactive items
         setHideInactiveItems(!hideInactiveItems);
     };
-    // 
-    // Make all list items not crossed-off
-    // 
-    const unCrossOffAllItems = async (evt) => {
-        console.log('un-cross-off all items');
-        const response = await fetch(`${APIUrl}/list-items/crossed-off/${false}`, {
-            method: "PATCH",
-            credentials: "include",
-        });
+    //
+    // Deactivate Crossed-Off Items
+    //
+    const deactivateCrossedOffItems = async (evt) => {
+        console.log(`/list-items/crossed-off-inactive...`);
+        const response = await fetch(
+            `${APIUrl}/list-items/crossed-off-inactive`,
+            {
+                method: "PATCH",
+                credentials: "include",
+            }
+        );
         const data = await response.json();
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
+    };
+    //
+    // Make all list items not crossed-off
+    //
+    const unCrossOffAllItems = async (evt) => {
+        console.log("un-cross-off all items");
+        const response = await fetch(
+            `${APIUrl}/list-items/crossed-off/${false}`,
+            {
+                method: "PATCH",
+                credentials: "include",
+            }
+        );
+        const data = await response.json();
+        setShoppingList(data.listItems);
+    };
+    if(!shoppingList){
+        return <h2 className="view-title">Loading...</h2>
     }
-
     return (
         <div>
-            <h1>LIST component</h1>
+            {/* <h1>LIST component</h1> */}
+            {shoppingList.length===0 && <p className="directions">Add items to your list with the "+" button below.</p>}
             <div id="list-holder">
                 <div id="list">
                     {shoppingList.map((item) => {
@@ -58,7 +91,7 @@ const List = ({ shoppingList, updateShoppingList }) => {
                                 <ListItem
                                     key={item.listItemID}
                                     item={item}
-                                    updateShoppingList={updateShoppingList}
+                                    setShoppingList={setShoppingList}
                                 />
                             );
                         }
@@ -93,6 +126,12 @@ const List = ({ shoppingList, updateShoppingList }) => {
                         {hideInactiveItems
                             ? "SHOW INACTIVE ELEMENTS"
                             : "HIDE INACTIVE ELEMENTS"}
+                    </button>
+                    <button
+                        id="deactivate-crossed-off-button"
+                        onPointerDown={deactivateCrossedOffItems}
+                    >
+                        DEACTIVATE CROSSED-OFF
                     </button>
                     <button
                         id="un-cross-off-all-button"

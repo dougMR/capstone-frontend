@@ -1,17 +1,30 @@
+// import APIUrl from "./APIUrl";
 import logo from "./images/shopfaster-logo.svg";
+// import { useState, useEffect } from "react";
 import Nav from "./Nav";
-const Header = ({ currentStore }) => {
+const Header = ({ currentStore, loggedIn, user }) => {
     return (
         <header>
-            <h1>Header component</h1>{" "}
+            {/* <h1>Header component</h1>{" "} */}
+
             <div className="top-display">
                 <img className="logo-img" src={logo} alt="Shop Faster Logo" />
-                <p className="store-name">
-                    {" "}
-                    {currentStore ? currentStore.name : "unknown"}
-                </p>
+                <div className="info-right">
+                    <div id="logged-in-status">
+                    {user ? user.username : "unknown user"} <div
+                            className={`light ${loggedIn
+                                ? 'on'
+                                : ''}`}
+                            
+                        ></div>
+                    </div>
+                    <p className="store-name">
+                        {" "}
+                        {currentStore ? currentStore.name : "unknown store"}
+                    </p>
+                </div>
             </div>
-            <Nav />
+            {loggedIn && <Nav />}
         </header>
     );
 };

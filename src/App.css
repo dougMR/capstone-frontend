@@ -3,9 +3,16 @@
     /* font vars */
     --label-font: sans-serif;
     /* color vars */
-    --brand-color-dark: rgb(45, 80, 178);
-    --brand-color-light: rgb(120, 148, 225);
-    --bg-light: rgb(254, 255, 226);
+    /* --brand-color-dark: rgb(45, 80, 178); */
+    --brand-color-dark: rgb(35, 83, 32);
+    /* --brand-color-light: #7894e1; */
+    --brand-color-light: #68c15e;
+    --brand-color-bright: #c4ffa6;
+    /* --bg-light: rgb(254, 255, 226); */
+    --med-cream: rgb(231, 218, 164);
+    --light-cream: rgb(255 249 222);
+    /* --bg-light: #d9dfef; */
+    --bg-light: #ccf1c6;
     --dark-grey: #333;
     --med-grey: #777;
     --light-med-grey: #999;
@@ -20,7 +27,7 @@ body {
     font-family: sans-serif;
 }
 div {
-    border: 1px solid lime;
+    /* border: 1px solid lime; */
     box-sizing: border-box;
 }
 
@@ -43,9 +50,11 @@ App
 }
 #app-body {
     position: relative;
-    height: 100%;
-    background-color: var(--bg-light);
+    /* background-color: var(--bg-light); */
+    /* background-color: var(--light-cream); */
+    background-color: var(--brand-color-dark);
     max-width: var(--max-width);
+    padding: 1rem;
 }
 #app-body .view {
     /* position: absolute; */
@@ -62,6 +71,19 @@ App
     display: flex;
     flex-direction: column;
 }
+
+#app-body .view-title {
+    color: var(--brand-color-light);
+    text-align: center;
+    text-transform: uppercase;
+    margin: 0.5em;
+}
+
+#app-body .directions {
+    color: var(--brand-color-bright);
+    text-align: center;
+}
+
 .button {
     border-radius: 0.5rem;
     padding: 0.5rem;
@@ -79,37 +101,88 @@ Header
 */
 header {
     background-color: var(--brand-color-light);
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
 }
+header #logged-in-status {
+    text-align: right;
+}
+@keyframes cycleLoggedInColor {
+    0% {
+        background-color: lime;
+    }
+
+    50% {
+        background-color: green;
+    }
+
+    100% {
+        background-color: lime;
+    }
+}
+header #logged-in-status .light {
+    height: 12px;
+    width: 12px;
+    border-radius: 8px;
+    border: 2px solid var(--dark-grey);
+    background-color: rgb(96, 0, 0);
+    display: inline-block;
+    text-align: right;
+}
+header #logged-in-status .light.on {
+    animation: cycleLoggedInColor;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+}
+
 header .top-display {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 1rem;
-    margin-left: 1vw;
+    padding: 1rem 1rem 0.5rem;
+}
+header .top-display .info-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 header .logo-img {
-    margin-left: 10w;
-    height: 10vw;
-    max-height: 50px;
+    height: 20vw;
+    max-height: 80px;
     width: auto;
 }
 
 header .store-name {
-
+    margin-bottom: 0;
 }
 
 header nav {
     text-align: center;
+    padding-bottom: 0.25rem;
 }
 
-header nav button {
+header nav button, button, .button-basic {
     padding: 0.25rem 0.5rem;
-    margin: 0 0.25rem;
+    /* margin: 0 0.25rem; */
+    border: none;
+    border-radius: 0.2rem;
+    color: var(--brand-color-dark);
+    background-color: var(--bg-light);
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.5s;
+}
+header nav button:hover, button:hover, .button-basic:hover {
+    color: rgb(225, 238, 144);
+    background-color: rgb(66, 128, 66);
 }
 
 #test-buttons {
     /* position: absolute;
     z-index: 100; */
     padding: 0.25rem;
+    display: flex;
+    justify-content: space-evenly;
 }
 
 /* 
@@ -133,8 +206,6 @@ Shopping View
     color: white;
 }
 
-
-
 #current-item-div {
     font-size: 2rem;
 }
@@ -148,8 +219,12 @@ Shopping View
     padding: 0;
     height: 1em;
     width: 1em;
-    margin:0.1em;
+    margin: 0.1em;
+    transition: background-color 0.5s;
     /* line-height: 0; */
+}
+#check-off-current-item-button:hover {
+    background-color: var(--brand-color-bright);
 }
 /* #items-status {
 
@@ -158,6 +233,7 @@ Shopping View
 #items-procured,
 #items-remaining {
     font-size: 2rem;
+    color: var(--bg-light);
 }
 
 /* #current-item-div {
@@ -171,8 +247,30 @@ Shopping Map
 #map-window {
     /* height: 100vw; */
     max-height: var(--max-width);
-    border: 5px solid var(--brand-color-dark);
+    /* border: 5px solid var(--brand-color-dark); */
     flex-grow: 1;
+}
+#map {
+    position: relative;
+}
+
+#loadbar-holder {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 5%;
+    width: 100%;
+    background-color: rgb(21, 34, 21);
+    z-index: 300;
+}
+#loadbar {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    background-color: lime;
 }
 #canvas-holder {
     position: relative;
@@ -181,7 +279,7 @@ Shopping Map
     max-width: 800px;
     height: 100%;
     box-sizing: border-box;
-    border: 2px solid purple;
+    /* border: 2px solid purple; */
     background-color: rgb(167, 255, 176);
     overflow: hidden;
 
@@ -217,33 +315,34 @@ Shopping Map
     -webkit-appearance: none;
     width: 100%;
     height: 25px;
-    background: #d3d3d3;
+    background: var(--brand-color-light);
     outline: none;
     opacity: 0.7;
-    -webkit-transition: .2s;
-    transition: opacity .2s;
-  }
-  
-  .slider:hover {
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+    padding: 0.1rem;
+}
+
+.slider:hover {
     opacity: 1;
-  }
-  
-  .slider::-webkit-slider-thumb {
+}
+
+.slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 25px;
     height: 25px;
-    background: #04AA6D;
+    background: var(--brand-color-dark);
     cursor: pointer;
-  }
-  
-  .slider::-moz-range-thumb {
+}
+
+.slider::-moz-range-thumb {
     width: 25px;
     height: 25px;
-    background: #04AA6D;
+    background: #04aa6d;
     cursor: pointer;
-  }
-  /* END SLIDER */
+}
+/* END SLIDER */
 
 /* 
 =========================================
@@ -254,6 +353,10 @@ Shopping Map
     color: var(--med-grey);
 }
 
+#list {
+    /* overflow-y: scroll; */
+    padding-top: 0.4rem;
+}
 #list,
 #search-results {
     /* min-width: 70vw; */
@@ -261,9 +364,14 @@ Shopping Map
 
 .list-item {
     padding: 0.5rem 1rem;
-    margin: 0 0 0.2rem;
+    margin: 0 0 0.3rem;
+    /* border: 2px solid var(--med-grey); */
+    /* background-color: var(--bg-light); */
+    background-color: transparent;
     border: 2px solid var(--med-grey);
-    background-color: #eee;
+}
+.list-item.active {
+    background-color: var(--light-cream);
 }
 /* .list-item.open {
 } */
@@ -275,29 +383,32 @@ Shopping Map
     font-size: 2rem;
     font-style: italic;
 }
-.list-item .item-name {
-    position: relative;
-    color: var(--light-grey);
-}
+
 .list-item.active .item-name {
-    color: var(--med-grey);
+    color: var(--dark-grey);
 }
 .list-item.crossed-off.active .item-name {
-    color: var(--light-med-grey);
+    color: var(--med-grey);
+}
+/* strike-through */
+.list-item.crossed-off.active .item-name:after {
+    background-color: var(--med-grey);
+}
+.list-item .item-name {
+    position: relative;
+    color: var(--med-cream);
 }
 .list-item.crossed-off .item-name:after {
     content: "";
     position: absolute;
-    background-color: var(--light-grey);
+    background-color: var(--brand-color-light);
     height: 0.1em;
     width: 100%;
     left: 0;
     top: 0.6em;
     line-height: 0;
 }
-.list-item.crossed-off.active .item-name:after {
-    background-color: var(--light-med-grey);
-}
+
 
 .list-item > .item-controls {
     display: none;
@@ -333,29 +444,48 @@ Shopping Map
     display: block;
     /* border: 2px solid red ; */
     background-color: var(--light-grey);
-    color: white;
+    color: var(--brand-color-dark);
     border-radius: 0.7 rem;
     padding: 1rem;
     text-align: center;
     vertical-align: middle;
     font-size: 3rem;
-    line-height: 1rem;
+    font-weight: bold;
+    line-height: 2.5rem;
+    margin-bottom: 0.4rem;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
 }
 #search {
     border: 2px solid blue;
     padding: 1rem;
 }
-
+#activation-buttons button {
+    margin: 0.2rem;
+}
 
 /* 
 =========================================
   SEARCH VIEW 
 =========================================
 */
+#search-view form {
+    padding: 2rem;
+}
+#search-view form label {
+    margin: 0.5rem 0;
+    color: var(--brand-color-bright);
+}
 .search-field {
-    margin: 1em;
+    margin: 0.5rem 0;
     padding: 0.2em 0.4em;
     font-size: 2rem;
+    border-bottom-right-radius: 1rem;
+    border-top-right-radius: 1rem;
+    font-style:italic;
+    font-weight: bold;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 /* 
@@ -364,11 +494,30 @@ Shopping Map
 =========================================
 */
 #store-select-view {
-    padding: 2rem;
+    padding: 0.2rem 0;
     /* background-color: red;
   border: 10px solid orange; */
 }
 
+#store-list {
+    width: 100%;
+}
+
+/* 
+=========================================
+  LOG-IN VIEW 
+=========================================
+*/
+#login-form {
+    box-sizing: border-box;
+    background: var(--brand-color-light);
+    width: 100%;
+    padding: 1rem;
+}
+#login-form input {
+    padding: 0.5rem 1rem;
+    border-radius: 0.3rem;
+}
 
 /* 
 =========================
@@ -377,6 +526,6 @@ Footer
 */
 footer {
     /* background-color: #444; */
-    padding: 0.25rem 0.5rem;
-    color: #666;
+    padding: 1rem 0.5rem 0;
+    color: var(--bg-light);
 }

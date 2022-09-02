@@ -4,32 +4,63 @@ import ListItem from "./ListItem";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
-const Search = ({ updateShoppingList, shoppingList, currentStore }) => {
+const Search = ({currentStore}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
+    const [shoppingList,setShoppingList] = useState(null);
+    const [message,setMessage] = useState("");
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const getShoppingList = async () => {
+            const response = await fetch(`${APIUrl}/list-items`,{
+                credentials:"include"
+            });
+            const data = await response.json();
+            setShoppingList(data.listItems);
+            console.log("data.listItems: ",data.listItems);
+        }
+        getShoppingList();
+    }, []);
 
     useEffect(()=>{
         const getInventory = async () => {
             const response = await fetch(`${APIUrl}/store/inventory/${currentStore.id}`);
             const data = await response.json();
             const inventory = data.inventory;
-            console.log('data: ',data);
             const items = [];
             for(const inv of inventory){
                 // get Item
-                const resp = await fetch(`${APIUrl}/item/${inv.item_id}`);
-                const dat = await resp.json();
-                items.push(dat.item);
+                const response = await fetch(`${APIUrl}/item/${inv.item_id}`);
+                const data = await response.json();
+                items.push(data.item);
             }
-            console.log("Store Inventory: ",items);
         };
-        getInventory();
-    },[]);
+        if(currentStore)getInventory();
+    },[currentStore]);
     
+    const updateShoppingList = async (list) => {
+        const inventoryIDs = [];
+        for(const item of list){
+            inventoryIDs.push(list.inventoryID);
+        }
+        const response = await fetch(`${APIUrl}/list-items`,{
+            method: "POST",
+            headers: {
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                inventoryIDs
+            }),
+            credentials:"include"
+        });
+        const data = response.json();
+        setShoppingList(data.listItems);
+    }
 
     const searchForItem = async (evt) => {
         evt.preventDefault();
+        console.log("search for ",searchTerm);
         const results = await fetch(
             `${APIUrl}/inventory/search/${searchTerm}`,
             {
@@ -38,7 +69,12 @@ const Search = ({ updateShoppingList, shoppingList, currentStore }) => {
         );
         const data = await results.json();
         setSearchResults(data.items);
-        console.log("searchResults for ", searchTerm, ": ", data.items);
+        console.log('searchResults: ',searchResults);
+        if(searchResults.length===0){
+            setMessage("No Matching Items Found.");
+        }else{
+            setMessage("");
+        }
     };
 
     const selectItem = async (item) => {
@@ -66,16 +102,25 @@ const Search = ({ updateShoppingList, shoppingList, currentStore }) => {
 
     const checkAlreadyOnList = (item) => {
         const itemIndex = shoppingList.findIndex(listItem=>listItem.name===item.name);
-        console.log("checkAlreadyOnList: ",item);
-        console.log("IS ON LIST: ",itemIndex);
         return itemIndex !== -1;
     }
 
+    if(!currentStore || !shoppingList){
+        console.log("currentStore: ",currentStore);
+        // console.log("inventory: ",inventory.length);
+        console.log("shoppingList: ",shoppingList);
+        return(
+            <h1>Select a Store...</h1>
+        )
+    }
+
     return (
-        <div>
-            <h1>Search - {currentStore.name}</h1>
+        <div id="search-view">
+            {/* <h1>Search - {currentStore.name}</h1> */}
+            <h2 className="view-title">Search {currentStore.name}</h2>
             <form onSubmit={searchForItem}>
-                <label htmlFor="">Item Name</label>
+                <label>Item Name</label>
+                <br />
                 <input className="search-field"
                     type="text"
                     // className="form-control"
@@ -92,17 +137,21 @@ const Search = ({ updateShoppingList, shoppingList, currentStore }) => {
                     Search
                 </button>
             </form>
-            {searchResults.map((item) => {
+            { 
+            searchResults.length === 0 ?
+                <p className="directions" style={{fontSize: "2rem", marginTop: 0}}>{message}</p>
+            :
+                searchResults.map((item) => {
                 const onList = checkAlreadyOnList(item);
                 if(onList){
                     item.name += " (ON LIST)";
                 }
-                console.log("item: ", item);
                 item.notListItem = true;
                 item.active = true;
                 if(!onList)item.onclick = (evt) => selectItem(item);
                 return <ListItem key={item.inventoryID} item={item} />;
-            })}
+            })
+            }
         </div>
     );
 };

@@ -13,7 +13,7 @@ const Nav = () => {
         } else if (buttonName === "SEARCH") {
             view = "/search";
         } else if (buttonName === "LOG OUT") {
-            view = "/login";
+            view = "/login/?logout=true";
         }
         navigate(view);
     };

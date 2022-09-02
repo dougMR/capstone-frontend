@@ -1,6 +1,6 @@
 import APIUrl from "./APIUrl";
 import { useState } from "react";
-const ListItem = ({ item, updateShoppingList }) => {
+const ListItem = ({ item, setShoppingList }) => {
     // console.log('listItem: ',item);
     const [open, setOpen] = useState(false);
 
@@ -16,7 +16,7 @@ const ListItem = ({ item, updateShoppingList }) => {
             credentials: "include",
         });
         const data = await response.json();
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
     };
 
     const toggleItemActive = async (evt) => {
@@ -32,7 +32,7 @@ const ListItem = ({ item, updateShoppingList }) => {
 
         const data = await response.json();
 
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
         closeItemControls();
     };
 
@@ -46,7 +46,7 @@ const ListItem = ({ item, updateShoppingList }) => {
             }
         );
         const data = await response.json();
-        updateShoppingList(data.listItems);
+        setShoppingList(data.listItems);
         closeItemControls();
     };
 
@@ -74,13 +74,13 @@ const ListItem = ({ item, updateShoppingList }) => {
         >
             <div className="item-name">
                 {item.name}
-                <br />
+                {/* <br />
                 <span style={{ fontSize: "0.5em" }}>
                     id: [{item.listItemID}], storeID: [{item.storeID}],
                     item.active: [{item.active ? "true" : "false"}],
                     item.crossedOff: [{item.crossedOff ? "true" : "false"}],
                     order: [{item.sortOrder}]
-                </span>
+                </span> */}
             </div>
             {item.notListItem ? (
                 // Don't include controls
