@@ -234,6 +234,7 @@ Shopping View
 #items-remaining {
     font-size: 2rem;
     color: var(--bg-light);
+    padding: 0 0.25em;
 }
 
 /* #current-item-div {

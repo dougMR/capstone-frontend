@@ -13,6 +13,7 @@ const waypoints = [];
 const paths = [];
 let currentStore = null;
 let entranceTile, checkoutTile;
+const distanceLookupTable = [];
 const PathfindingFn = (setProgressPercent) => {
     // Need at least 2 waypoints to draw path
     // console.log("orderedWaypoints: ", orderedWPs);
@@ -411,24 +412,64 @@ const PathfindingFn = (setProgressPercent) => {
         // Get total distance for a set of waypoints (tiles)
         // waypoints does not include entrance, checkout
 
+        //
+        // CREATE DISTANCE LOOKUP TABLE
+        //
+        const waypointDistanceTable = [];
+        const createDistanceLookupTable = () => {
+            const startCreateLookup = performance.now();
+            const wps = addStartAndEnd(waypoints);
+            // Calculate distance from each waypoint to every other
+            for (let wp1 = 0; wp1 < wps.length - 1; wp1++) {
+                if (waypointDistanceTable[wp1] === undefined) {
+                    waypointDistanceTable[wp1] = [];
+                }
+                for (let wp2 = wp1 + 1; wp2 < wps.length; wp2++) {
+                    const path = findPathFromAtoB(wps[wp1], wps[wp2]);
+                    const dist = path === null ? null : getPathDistance(path);
+                    waypointDistanceTable[wp1][wp2] = dist;
+                }
+            }
+            console.log(
+                "Lookup Creation Time: ",
+                performance.now() - startCreateLookup
+            );
+        };
+
+        //
+        // GET DISTANCE FROM WAYPOINT LOOKUP TABLE
+        //
+        const lookupDistance = (index1, index2) => {
+            if (index1 > index2) {
+                const temp = index1;
+                index1 = index2;
+                index2 = temp;
+            }
+            return waypointDistanceTable[index1][index2];
+        };
+
         const getWaypointsDistance = (tiles, order) => {
             // console.log("getWaypointsDistance()");
-            tiles = addStartAndEnd(tiles);
-            order = addStartEndIndexes(order);
+            // tiles = addStartAndEnd(tiles);
+            // order = addStartEndIndexes(order);
             let dist = 0;
             for (let o = 0; o < order.length - 1; o++) {
                 const tileAIndex = order[o];
-                const tileA = tiles[tileAIndex];
+                // const tileA = tiles[tileAIndex];
                 const tileBIndex = order[o + 1];
-                const tileB = tiles[tileBIndex];
+                // const tileB = tiles[tileBIndex];
                 // console.log('findPathFromAtoB...');
-                const path = findPathFromAtoB(tileA, tileB);
+                // const startTime = performance.now();
+                // const path = findPathFromAtoB(tileA, tileB);
+                // const path = lookupPathFromAtoB(tileA, tileB);
+                // console.log("AtoB time: ", performance.now() - startTime);
                 // paths.push(path);
                 // drawDotAtTile(tileB);
                 // drawPath(path);
                 // console.log("PATH: ", path);
-                dist += getPathDistance(path);
+                // dist += getPathDistance(path);
                 // dist += lookupDistance(tileA, tileB);
+                dist += lookupDistance(tileAIndex, tileBIndex);
             }
             return dist;
         };
@@ -444,10 +485,6 @@ const PathfindingFn = (setProgressPercent) => {
             return newPath;
         };
 
-        const addStartAndEnd = (path) => {
-            return [startWP, ...path, endWP];
-        };
-
         const swap = (vals, i, j) => {
             const temp = vals[i];
             vals[i] = vals[j];
@@ -455,14 +492,14 @@ const PathfindingFn = (setProgressPercent) => {
         };
 
         const shuffle = (array, num) => {
-            if(array.length < 2)return;
-            console.log("shuffle: ",array);
+            if (array.length < 2) return;
+            // console.log("shuffle: ", array);
             for (let n = 0; n < num; n++) {
                 let indexA = Math.floor(Math.random() * array.length);
                 let indexB;
                 do {
                     indexB = Math.floor(Math.random() * array.length);
-                    console.log('indexA/B: ',indexA,indexB);
+                    // console.log('indexA/B: ',indexA,indexB);
                 } while (indexB === indexA);
                 swap(array, indexA, indexB);
             }
@@ -475,6 +512,7 @@ const PathfindingFn = (setProgressPercent) => {
             let newOrder = [...order];
             let foundShorter = false;
 
+            const startCheck = performance.now();
             for (let i = 0; i < order.length; i++) {
                 for (let j = i + 1; j < order.length; j++) {
                     const swappedOrder = [...newOrder];
@@ -494,6 +532,7 @@ const PathfindingFn = (setProgressPercent) => {
                     }
                 }
             }
+            console.log("checkTime: ", performance.now() - startCheck);
             if (foundShorter) {
                 // set order to newOrder
                 console.log(" ------------ checkSwap found improvemnet");
@@ -505,9 +544,20 @@ const PathfindingFn = (setProgressPercent) => {
         };
 
         const checkSwapEvery2PointsOfPopulation = () => {
+            console.log("checkSwapEvery2PointsOfPopulation()");
             for (let p = 0; p < population.length; p++) {
-                checkSwapEvery2Points(population[p]);
+                // DR 9/3/22 - too expensive, make it less likely to run
+                const rand = Math.random();
+
+                if (rand < 0.1) {
+                    console.log("Math.random(): ", rand);
+                    checkSwapEvery2Points(population[p]);
+                }
             }
+        };
+
+        const addStartAndEnd = (path) => {
+            return [startWP, ...path, endWP];
         };
 
         const addStartEndIndexes = (thisOrder) => {
@@ -555,7 +605,7 @@ const PathfindingFn = (setProgressPercent) => {
                     numMutations = 1;
                 } else {
                     // no shortest dist found, increase mutations
-                    numMutations++;
+                    // numMutations++;
                     numMutations = Math.min(numMutations + 1, order.length);
                 }
                 fitness[p] = dist === 0 ? 0 : 1 / dist;
@@ -617,7 +667,7 @@ const PathfindingFn = (setProgressPercent) => {
                     checkOrderAlreadyTried(newOrder) &&
                     loops < maxCheckNewOrderLoops
                 );
-                // console.log('loops: ',loops, 'vs', maxCheckNewOrderLoops);
+                console.log("loops: ", loops, "vs", maxCheckNewOrderLoops);
                 // if (loops + 2 < maxCheckNewOrderLoops) {
                 if (
                     getWaypointsDistance(waypoints, newOrder) <
@@ -692,16 +742,22 @@ const PathfindingFn = (setProgressPercent) => {
         let uniqueOrdersTried = 0;
         const ordersTried = [];
 
-        let maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
-        const populationNum = maxTries;
+        // let maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
+        let maxTries = Math.ceil(waypoints.length * 3);
+        maxTries = Math.min(8, maxTries);
+        const populationNum = maxTries * maxTries;
+        // console.log(
+        //     "(maxTries*maxTries) / waypoints.length: ",
+        //     (maxTries * maxTries) / waypoints.length
+        // );
         const maxCheckNewOrderLoops = Math.pow(waypoints.length * 0.5, 2);
+        let numMutations = 1;
 
         // population of orders
         const population = [];
         // fitness rates each population order by dist (shorter better)
         const fitness = [];
         let tries = 0;
-        let numMutations = 1;
 
         let order = [];
         for (let o = 0; o < waypoints.length + 2; o++) {
@@ -712,8 +768,12 @@ const PathfindingFn = (setProgressPercent) => {
         const endIndex = order.length - 1;
         order = stripStartEndIndexes([...order]);
         console.log("waypoints: ", waypoints);
-        // shuffle(order, order.length);
+        shuffle(order, order.length);
         console.log("order: ", order);
+
+        // Create Lookup Table for all Waypoints to all Waypoints
+        createDistanceLookupTable();
+
         let shortestDist = getWaypointsDistance(waypoints, order);
         console.log(" *** START shortestDistance: ", shortestDist);
 
@@ -724,19 +784,18 @@ const PathfindingFn = (setProgressPercent) => {
         if (maxTries * population.length > permutations) {
             maxTries = permutations;
         }
-        maxTries = 2;
 
         console.log("maxTries, ", maxTries);
         console.log("populationNum: ", populationNum);
 
         let bestOrder = [...order];
-        console.log("bestOrder: ",bestOrder);
+        console.log("bestOrder: ", bestOrder);
         // set random populations
         for (let p = 0; p < populationNum; p++) {
             population[p] = [...order];
-            console.log("p1: ",population[p]);
+            // console.log("p1: ", population[p]);
             shuffle(population[p], 10);
-            console.log("p2: ",population[p]);
+            // console.log("p2: ", population[p]);
         }
 
         // checkSwapEvery2PointsOfPopulation();
@@ -746,21 +805,32 @@ const PathfindingFn = (setProgressPercent) => {
             // const pathfindingLoop = () => {
             const startIteration = performance.now();
             // const startCollision = foundRepeat;
+            // const start1 = performance.now();
             // console.log("calcFitness...");
             calculateFitness();
+            // console.log(performance.now() - start1);
+
+            // const start2 = performance.now();
             // console.log("normalize...");
             normalizeFitness();
+            // console.log(performance.now() - start2);
+
+            // const start3 = performance.now();
             // console.log("nextGen...");
             nextGeneration();
+            // console.log(performance.now() - start3);
+
+            // const start4 = performance.now();
             // console.log('checkSwapAllPopulation...');
             checkSwapEvery2PointsOfPopulation();
+            // console.log(performance.now() - start4);
 
             // console.log("tries: ", tries, "of ", maxTries);
             // console.log("unique orders: ", uniqueOrdersTried);
             // console.log("collisions: ", foundRepeat - startCollision);
-            const pctDone = (tries / maxTries) * 100;
-            setProgressPercent(pctDone);
-            console.log("PCT: ", pctDone);
+            // const pctDone = (tries / maxTries) * 100;
+            // setProgressPercent(pctDone);
+            // console.log("PCT: ", pctDone);
             console.log(
                 ` ----- try ${tries} of ${maxTries} took ${(
                     performance.now() - startIteration
@@ -848,11 +918,17 @@ const PathfindingFn = (setProgressPercent) => {
             for (const item of shoppingList) {
                 waypoints.push(getTileByIndices(item.col, item.row));
             }
-            console.log("Pathfinding > unordered WAYPOINTS: ", waypoints.length);
+            console.log(
+                "Pathfinding > unordered WAYPOINTS: ",
+                waypoints.length
+            );
             console.log("Pathfinding > unordered WAYPOINTS: ", waypoints);
+
+            // Get Shortest Path through Waypoints
             const orderedWPs = tspShortestByMutation(waypoints);
-            console.log('orderedWPs: ',orderedWPs.length);
-            console.log('orderedWPs: ',orderedWPs);
+
+            console.log("orderedWPs: ", orderedWPs.length);
+            console.log("orderedWPs: ", orderedWPs);
             for (let o = 0; o < orderedWPs.length - 1; o++) {
                 const tileA = orderedWPs[o];
                 const tileB = orderedWPs[o + 1];

@@ -12,12 +12,12 @@ const Login = ({ setUser, setLoggedIn, setCurrentStore }) => {
     const logOut = searchParams.get("logout");
     const navigate = useNavigate();
 
-    useEffect(()=>{
-        if(!newUser){
+    useEffect(() => {
+        if (!newUser) {
             setUsername("");
             setPassword("");
         }
-    },[]);
+    }, []);
 
     const createAccount = async () => {
         try {
@@ -56,6 +56,7 @@ const Login = ({ setUser, setLoggedIn, setCurrentStore }) => {
         setLoggedIn(data.isLoggedIn);
         setUser(null);
         setCurrentStore(null);
+        navigate("/login")
     };
     if (logOut === "true") {
         logout();
@@ -76,28 +77,34 @@ const Login = ({ setUser, setLoggedIn, setCurrentStore }) => {
                 credentials: "include",
             });
             const data = await response.json();
-
+            console.log('login data: ',data);
             if (data.error) {
                 setError(data.error);
             } else {
                 setError("");
-                // redirect to Launch, login successful
+                //  login successful
                 setLoggedIn(data.isLoggedIn);
                 setUser(data.sessionUser);
                 if (data.isLoggedIn) {
-                    const response2 = await fetch(`${APIUrl}/store-current`, {
-                        credentials: "include",
-                    });
-                    const data2 = await response2.json();
-                    if(data2.error){
-                        setError(data2.error);
-                    }
-                    if(data2.currentStore){
-                        setCurrentStore(data2.currentStore);
-                        navigate("/list");
-                    }else{
-                        navigate("/stores")
-                    }
+                    setTimeout(async () => {
+                        const response2 = await fetch(
+                            `${APIUrl}/store-current`,
+                            {
+                                credentials: "include",
+                            }
+                        );
+                        const data2 = await response2.json();
+                        console.log('data2: ',data2);
+                        if (data2.error) {
+                            setError(data2.error);
+                        }
+                        if (data2.currentStore) {
+                            setCurrentStore(data2.currentStore);
+                            navigate("/list");
+                        } else {
+                            navigate("/stores");
+                        }
+                    }, 500);
                 }
             }
         } catch (error) {

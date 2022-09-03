@@ -11,6 +11,7 @@ let mapLeft = 0;
 let mapTop = 0;
 let lastZoom = 1;
 let dragging = false;
+let obstaclesVisible = true;
 
 const Map = ({
     paths,
@@ -72,8 +73,8 @@ const Map = ({
 
         startMapWidth = mapImg.offsetWidth;
         startMapHeight = mapImg.offsetHeight;
-        // console.log("startMapWidth: ", startMapWidth);
-        // console.log("startMapHeight: ", startMapHeight);
+        console.log("startMapWidth: ", startMapWidth);
+        console.log("startMapHeight: ", startMapHeight);
 
         // console.log("startMapWidth, height: ", mapImg.width, mapImg.height);
         // startMapWidth.current = mapImg.offsetWidth;
@@ -98,7 +99,7 @@ const Map = ({
         //     context.canvas.width,
         //     context.canvas.height
         // );
-        setZoom(1);
+        setZoom(1.001);
     };
 
     useEffect(() => {
@@ -146,10 +147,10 @@ const Map = ({
     }, [zoom]);
 
     useEffect(() => {
-        if(paths.length===0){
+        if (paths.length === 0) {
             setZoom(1);
             // zoom will call drawMap()
-        }else{
+        } else {
             drawMap();
         }
     }, [paths]);
@@ -277,7 +278,7 @@ const Map = ({
     const drawMap = () => {
         if (!ctx) return;
         console.log("drawMap()");
-        console.log("tileSize: ",tileSize);
+        console.log("tileSize: ", tileSize);
         setBooleanFlag(!booleanFlag);
         setTimeout(() => {
             // console.log("drawMap() thinks showingPaths is: ", showingPaths);
@@ -290,16 +291,11 @@ const Map = ({
     const drawGrid = () => {
         if (!ctx) return;
         // console.log("drawGrid(), tileSize: ", tileSize);
-        // console.log(
-        //     "mapWidth / grid.length: ",
-        //     mapWidth / currentStore.grid.length
-        // );
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         ctx.lineWidth = Math.min(tileSize * 0.1, 1);
         const obstacleStrokeColor = "#7894E1";
-        const clearStrokeColor = "rgba(0,0,0,0.25)"
-        
+        const unobstructedStrokeColor = "rgba(0,0,0,0.25)";
         ctx.fillStyle = "#7894E1";
 
         for (const col of currentStore.grid) {
@@ -309,9 +305,11 @@ const Map = ({
                 // Stroke on top of fill
                 ctx.beginPath();
                 ctx.rect(x, y, tileSize, tileSize);
-                if (tile.obstacle) ctx.fill();
-                ctx.strokeStyle = tile.obstacle ? obstacleStrokeColor : clearStrokeColor;
-                ctx.stroke();
+                if (tile.obstacle && obstaclesVisible) ctx.fill();
+                ctx.strokeStyle = tile.obstacle
+                    ? obstacleStrokeColor
+                    : unobstructedStrokeColor;
+                if(!tile.obstacle || obstaclesVisible) ctx.stroke();
             }
         }
     };
@@ -325,7 +323,7 @@ const Map = ({
         // console.log("RADIUS: ",radius);
         // console.log("TILESIZE: ",tileSize);
         ctx.fillStyle = "grey";
-        let firstItem = true;
+        let firstItem = paths.length > 0;
         ctx.lineWidth = Math.max(tileSize * 0.1, 1);
         ctx.strokeStyle = "black";
         const activeItems = shoppingList.filter((item) => item.active);
@@ -366,12 +364,19 @@ const Map = ({
     // Toggle Paths Showing
     //
     const togglePaths = (force) => {
-
         if (force != undefined) {
             setShowingPaths(force);
         } else {
             setShowingPaths(!showingPaths);
         }
+    };
+
+    //
+    // Toggle Obstacle Tiles Colored In
+    //
+    const toggleObstacles = () => {
+        obstaclesVisible = !obstaclesVisible;
+        drawMap();
     };
 
     //
@@ -502,7 +507,7 @@ const Map = ({
     return (
         <div id="map">
             {/* <div id="loadbar-holder">
-            <div id="loadbar" style={{width:`${progressPercent}%`}}/>
+                <div id="loadbar" style={{ width: `${progressPercent}%` }} />
             </div> */}
             <div
                 ref={mapHolderRef}
@@ -567,6 +572,13 @@ const Map = ({
                     }}
                 >
                     {showingPaths ? "Hide Paths" : "Show Paths"}
+                </button>
+                <button
+                    onPointerDown={(evt) => {
+                        toggleObstacles();
+                    }}
+                >
+                    {obstaclesVisible ? "Clean Map" : "Enhanced Map"}
                 </button>
             </div>
         </div>
