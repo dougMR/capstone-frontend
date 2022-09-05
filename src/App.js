@@ -15,6 +15,7 @@ function App() {
     const [currentStore, setCurrentStore] = useState(null);
     const [loggedIn, setLoggedIn] = useState(true);
     const [user, setUser] = useState(null);
+    const [paths, setPaths] = useState([]);
 
     useEffect(() => {
         
@@ -64,7 +65,9 @@ function App() {
                         <Route path="/" element={<Launch />} />
                         <Route
                             path="/shop"
-                            element={<Shop currentStore={currentStore} />}
+                            element={<Shop currentStore={currentStore}
+                            setPaths={setPaths}
+                            paths={paths} />}
                         />
                         <Route
                             path="/search"

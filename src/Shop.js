@@ -3,8 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import APIUrl from "./APIUrl";
 
-const Shop = ({ currentStore }) => {
-    const [paths, setPaths] = useState([]);
+const Shop = ({ currentStore, setPaths, paths }) => {
     const [shoppingList, setShoppingList] = useState([]);
     console.log(" - Hello from Shop Component");
 

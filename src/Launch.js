@@ -16,7 +16,7 @@ const Launch = () => {
             const dataLS = await responseLS.json();
             console.log("Launch > dataLS: ", dataLS);
             if (dataLS.isLoggedIn) {
-                navigate("/list");
+                navigate("/stores");
             } else {
                 navigate("/login");
             }

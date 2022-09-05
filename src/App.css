@@ -3,20 +3,36 @@
     /* font vars */
     --label-font: sans-serif;
     /* color vars */
-    /* --brand-color-dark: rgb(45, 80, 178); */
-    --brand-color-dark: rgb(35, 83, 32);
+    /* BLUES */
+    --brand-color-darker: #182d4b;
+    --brand-color-dark: rgb(45, 80, 178);
     /* --brand-color-light: #7894e1; */
-    --brand-color-light: #68c15e;
-    --brand-color-bright: #c4ffa6;
+    --brand-color-light: #84a4ff;
+    --brand-color-bright: #a6edff;
+
+    --bg-light: #d7e2ff;
+
+    /* ORANGES */
+    /* --brand-color-light: #ffd100; */
+
+    /* GREENS */
+    /* --brand-color-dark: rgb(35, 83, 32); */
+    /* --brand-color-light: #68c15e; */
+    /* --brand-color-light: #55de46; */
+    /* --brand-color-bright: #c4ffa6; */
+    /* --bg-light: #ccf1c6; */
+
+    /* CREAMS */
     /* --bg-light: rgb(254, 255, 226); */
     --med-cream: rgb(231, 218, 164);
     --light-cream: rgb(255 249 222);
+
+    /* GREYS */
     /* --bg-light: #d9dfef; */
-    --bg-light: #ccf1c6;
     --dark-grey: #333;
     --med-grey: #777;
-    --light-med-grey: #999;
-    --light-grey: #c6c6c6;
+    /* --light-med-grey: #999;
+    --light-grey: #c6c6c6; */
     /* format vars */
     --max-width: 600px;
 }
@@ -52,7 +68,7 @@ App
     position: relative;
     /* background-color: var(--bg-light); */
     /* background-color: var(--light-cream); */
-    background-color: var(--brand-color-dark);
+    background-color: var(--brand-color-darker);
     max-width: var(--max-width);
     padding: 1rem;
 }
@@ -138,7 +154,7 @@ header #logged-in-status .light.on {
 header .top-display {
     display: flex;
     justify-content: space-between;
-    padding: 1rem 1rem 0.5rem;
+    padding: 1rem 1rem;
 }
 header .top-display .info-right {
     display: flex;
@@ -147,17 +163,18 @@ header .top-display .info-right {
 }
 header .logo-img {
     height: 20vw;
-    max-height: 80px;
+    max-height: 60px;
     width: auto;
 }
 
 header .store-name {
     margin-bottom: 0;
+    text-align: right;
 }
 
 header nav {
     text-align: center;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.5rem;
 }
 
 header nav button, button, .button-basic {
@@ -165,8 +182,8 @@ header nav button, button, .button-basic {
     /* margin: 0 0.25rem; */
     border: none;
     border-radius: 0.2rem;
-    color: var(--brand-color-dark);
-    background-color: var(--bg-light);
+    color: var(--bg-light);
+    background-color: var(--brand-color-dark);
     font-size: 1rem;
     font-weight: bold;
     text-decoration: none;
@@ -215,10 +232,10 @@ Shopping View
     align-items: center;
     color: #333;
     background-color: var(--brand-color-light);
-    font-size: 2rem;
+    font-size: 3rem;
     padding: 0;
-    height: 1em;
-    width: 1em;
+    height: 1.2em;
+    width: 1.2em;
     margin: 0.1em;
     transition: background-color 0.5s;
     /* line-height: 0; */
@@ -226,17 +243,27 @@ Shopping View
 #check-off-current-item-button:hover {
     background-color: var(--brand-color-bright);
 }
-/* #items-status {
-
-} */
+#items-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+}
 
 #items-procured,
 #items-remaining {
     font-size: 2rem;
-    color: var(--bg-light);
-    padding: 0 0.25em;
+    color: var(--brand-color-bright);
 }
 
+#shopping-view #activation-buttons button {
+    background-color: var(--brand-color-light);
+    color: var(--brand-color-darker);
+}
+#shopping-view #activation-buttons button:hover {
+    background-color: var(--brand-color-dark);
+    color: var(--brand-color-bright);
+}
 /* #current-item-div {
 } */
 
@@ -281,7 +308,7 @@ Shopping Map
     height: 100%;
     box-sizing: border-box;
     /* border: 2px solid purple; */
-    background-color: rgb(167, 255, 176);
+    background-color: var(--brand-color-dark);
     overflow: hidden;
 
     user-select: none;
@@ -363,51 +390,56 @@ Shopping Map
     /* min-width: 70vw; */
 }
 
-.list-item {
+/* LIST ITEMS */
+.list-item:not(active) {
     padding: 0.5rem 1rem;
     margin: 0 0 0.3rem;
-    /* border: 2px solid var(--med-grey); */
-    /* background-color: var(--bg-light); */
-    background-color: transparent;
-    border: 2px solid var(--med-grey);
 }
-.list-item.active {
-    background-color: var(--light-cream);
-}
-/* .list-item.open {
-} */
-.item-name {
+.list-item  .item-name, #current-item-div {
+    position: relative;
     font-family: var(--label-font);
     font-weight: bold;
-
     text-transform: capitalize;
     font-size: 2rem;
     font-style: italic;
 }
 
-.list-item.active .item-name {
-    color: var(--dark-grey);
+/* Not Active */
+.list-item:not(active) {
+    background-color: transparent;
+    border: 2px solid var(--med-grey);
+}
+.list-item:not(active) .item-name {
+    color: var(--med-grey);
+}
+
+/* Active */
+.list-item.active:not(crossed-off) {
+    background-color: var(--light-cream);
+}
+.list-item.active:not(crossed-off) .item-name {
+    color: var(--brand-color-dark);
+}
+
+/* Crossed Off */
+.list-item.active.crossed-off {
+    background-color: var(--med-cream);
 }
 .list-item.crossed-off.active .item-name {
     color: var(--med-grey);
 }
 /* strike-through */
 .list-item.crossed-off.active .item-name:after {
-    background-color: var(--med-grey);
-}
-.list-item .item-name {
-    position: relative;
-    color: var(--med-cream);
-}
-.list-item.crossed-off .item-name:after {
     content: "";
     position: absolute;
-    background-color: var(--brand-color-light);
+    /* background-color: var(--brand-color-light); */
+    background-color: var(--med-grey);
     height: 0.1em;
     width: 100%;
     left: 0;
     top: 0.6em;
     line-height: 0;
+    z-index: 10;
 }
 
 
@@ -444,7 +476,7 @@ Shopping Map
 #add-item {
     display: block;
     /* border: 2px solid red ; */
-    background-color: var(--light-grey);
+    background-color: var(--brand-color-light);
     color: var(--brand-color-dark);
     border-radius: 0.7 rem;
     padding: 1rem;
@@ -456,10 +488,17 @@ Shopping Map
     margin-bottom: 0.4rem;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
+    transition: background-color 0.5s;
+}
+#add-item:hover {
+    background-color: var(--brand-color-bright);
 }
 #search {
     border: 2px solid blue;
     padding: 1rem;
+}
+#activation-buttons {
+    padding: 1rem 0 0;
 }
 #activation-buttons button {
     margin: 0.2rem;
@@ -526,7 +565,10 @@ Footer
 =========================
 */
 footer {
-    /* background-color: #444; */
-    padding: 1rem 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 0.5rem 0;
+    font-size: 0.8rem;
     color: var(--bg-light);
 }

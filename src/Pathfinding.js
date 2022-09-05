@@ -13,7 +13,6 @@ const waypoints = [];
 const paths = [];
 let currentStore = null;
 let entranceTile, checkoutTile;
-const distanceLookupTable = [];
 const PathfindingFn = (setProgressPercent) => {
     // Need at least 2 waypoints to draw path
     // console.log("orderedWaypoints: ", orderedWPs);
@@ -229,10 +228,6 @@ const PathfindingFn = (setProgressPercent) => {
             fromTile: tile1,
             toTile: tile2,
             isDiagonal: diagonal,
-            // draw: function (color) {
-            //     // console.log('this: ',this);
-            //     drawSegment(this, color);
-            // },
             parentSeg,
         };
         return segment;
@@ -319,6 +314,7 @@ const PathfindingFn = (setProgressPercent) => {
         let dist = path.length;
         for (const segment of path) {
             if (segment.isDiagonal) {
+                // console.log('isDiagonal');
                 dist += 0.4; // difference of hypotenuse and side length
             }
         }
@@ -407,6 +403,8 @@ const PathfindingFn = (setProgressPercent) => {
     // This script uses traveling salesperson problem (TSP) to look for shortest route
     //
 
+    const waypointDistanceTable = [];
+
     const tspShortestByMutation = (waypoints) => {
         console.log("tspShortestByMutation()");
         // Get total distance for a set of waypoints (tiles)
@@ -415,7 +413,7 @@ const PathfindingFn = (setProgressPercent) => {
         //
         // CREATE DISTANCE LOOKUP TABLE
         //
-        const waypointDistanceTable = [];
+
         const createDistanceLookupTable = () => {
             const startCreateLookup = performance.now();
             const wps = addStartAndEnd(waypoints);
@@ -427,9 +425,11 @@ const PathfindingFn = (setProgressPercent) => {
                 for (let wp2 = wp1 + 1; wp2 < wps.length; wp2++) {
                     const path = findPathFromAtoB(wps[wp1], wps[wp2]);
                     const dist = path === null ? null : getPathDistance(path);
+                    // console.log('dist: ',dist);
                     waypointDistanceTable[wp1][wp2] = dist;
                 }
             }
+            // console.log('lookup table: ',waypointDistanceTable);
             console.log(
                 "Lookup Creation Time: ",
                 performance.now() - startCreateLookup
@@ -451,7 +451,7 @@ const PathfindingFn = (setProgressPercent) => {
         const getWaypointsDistance = (tiles, order) => {
             // console.log("getWaypointsDistance()");
             // tiles = addStartAndEnd(tiles);
-            // order = addStartEndIndexes(order);
+            order = addStartEndIndexes(order);
             let dist = 0;
             for (let o = 0; o < order.length - 1; o++) {
                 const tileAIndex = order[o];
@@ -469,7 +469,9 @@ const PathfindingFn = (setProgressPercent) => {
                 // console.log("PATH: ", path);
                 // dist += getPathDistance(path);
                 // dist += lookupDistance(tileA, tileB);
-                dist += lookupDistance(tileAIndex, tileBIndex);
+                const nextDist = lookupDistance(tileAIndex, tileBIndex);
+                // console.log('nextDist: ',nextDist);
+                dist += nextDist;
             }
             return dist;
         };
@@ -506,13 +508,13 @@ const PathfindingFn = (setProgressPercent) => {
         };
 
         const checkSwapEvery2Points = (order) => {
-            console.log("checkSwapEvery2Points()");
+            // console.log("checkSwapEvery2Points()");
             // with every pair of points,
             // check if dist is shorter by swapping them
             let newOrder = [...order];
             let foundShorter = false;
 
-            const startCheck = performance.now();
+            // const startCheck = performance.now();
             for (let i = 0; i < order.length; i++) {
                 for (let j = i + 1; j < order.length; j++) {
                     const swappedOrder = [...newOrder];
@@ -532,7 +534,7 @@ const PathfindingFn = (setProgressPercent) => {
                     }
                 }
             }
-            console.log("checkTime: ", performance.now() - startCheck);
+            // console.log("checkTime: ", performance.now() - startCheck);
             if (foundShorter) {
                 // set order to newOrder
                 console.log(" ------------ checkSwap found improvemnet");
@@ -547,12 +549,12 @@ const PathfindingFn = (setProgressPercent) => {
             console.log("checkSwapEvery2PointsOfPopulation()");
             for (let p = 0; p < population.length; p++) {
                 // DR 9/3/22 - too expensive, make it less likely to run
-                const rand = Math.random();
+                // const rand = Math.random();
 
-                if (rand < 0.1) {
-                    console.log("Math.random(): ", rand);
-                    checkSwapEvery2Points(population[p]);
-                }
+                // if (rand < 0.1) {
+                // console.log("Math.random(): ", rand);
+                checkSwapEvery2Points(population[p]);
+                // }
             }
         };
 
@@ -602,7 +604,7 @@ const PathfindingFn = (setProgressPercent) => {
                     }
 
                     bestOrder = [...population[p]];
-                    numMutations = 1;
+                    numMutations = 2;
                 } else {
                     // no shortest dist found, increase mutations
                     // numMutations++;
@@ -646,6 +648,7 @@ const PathfindingFn = (setProgressPercent) => {
             // let numChecks = 0;
             // let testOrderCollision = 0;
             for (let p = 0; p < population.length; p++) {
+                // console.log('p: ',p);
                 // const newOrder = [...bestOrder];
                 const oldOrder = [...population[p]];
                 const newOrder = pickOneByFitness();
@@ -667,7 +670,7 @@ const PathfindingFn = (setProgressPercent) => {
                     checkOrderAlreadyTried(newOrder) &&
                     loops < maxCheckNewOrderLoops
                 );
-                console.log("loops: ", loops, "vs", maxCheckNewOrderLoops);
+                // console.log("loops: ", loops, "vs", maxCheckNewOrderLoops);
                 // if (loops + 2 < maxCheckNewOrderLoops) {
                 if (
                     getWaypointsDistance(waypoints, newOrder) <
@@ -742,10 +745,11 @@ const PathfindingFn = (setProgressPercent) => {
         let uniqueOrdersTried = 0;
         const ordersTried = [];
 
-        // let maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
-        let maxTries = Math.ceil(waypoints.length * 3);
-        maxTries = Math.min(8, maxTries);
-        const populationNum = maxTries * maxTries;
+        let maxTries = Math.pow(Math.ceil(waypoints.length * 0.5), 2);
+        // let maxTries = Math.ceil(waypoints.length * waypoints.length);
+        // maxTries = Math.min(8, maxTries);
+        const populationNum = Math.min(800, maxTries * maxTries);
+    
         // console.log(
         //     "(maxTries*maxTries) / waypoints.length: ",
         //     (maxTries * maxTries) / waypoints.length

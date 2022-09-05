@@ -12,6 +12,7 @@ let mapTop = 0;
 let lastZoom = 1;
 let dragging = false;
 let obstaclesVisible = true;
+let gridOn = true;
 
 const Map = ({
     paths,
@@ -21,6 +22,7 @@ const Map = ({
     updateShoppingList,
 }) => {
     console.log(" - Hello from Map component");
+    console.log("currentStore.mapURL: ",currentStore.mapURL);
     const [zoom, setZoom] = useState(0);
     const [imageLoadDone, setImageLoadDone] = useState(false);
     const [startDragPosition, setStartDragPosition] = useState({});
@@ -99,6 +101,7 @@ const Map = ({
         //     context.canvas.width,
         //     context.canvas.height
         // );
+        togglePaths(false);
         setZoom(1.001);
     };
 
@@ -308,7 +311,7 @@ const Map = ({
                 if (tile.obstacle && obstaclesVisible) ctx.fill();
                 ctx.strokeStyle = tile.obstacle
                     ? obstacleStrokeColor
-                    : unobstructedStrokeColor;
+                    : gridOn ? unobstructedStrokeColor : 'transparent';
                 if(!tile.obstacle || obstaclesVisible) ctx.stroke();
             }
         }
@@ -376,6 +379,14 @@ const Map = ({
     //
     const toggleObstacles = () => {
         obstaclesVisible = !obstaclesVisible;
+        drawMap();
+    };
+
+    //
+    // Toggle Grid Overlay on Map
+    //
+    const toggleGrid = () => {
+        gridOn = !gridOn;
         drawMap();
     };
 
@@ -551,7 +562,7 @@ const Map = ({
                 onChange={changedSlider}
                 type="range"
                 min="1"
-                max="3"
+                max="4"
                 step="0.05"
                 value={zoom}
                 className="slider"
@@ -564,7 +575,7 @@ const Map = ({
                         setTimeout(calculateOrder, 100);
                     }}
                 >
-                    calculate path
+                    Calculate Path
                 </button>
                 <button
                     onPointerDown={(evt) => {
@@ -579,6 +590,11 @@ const Map = ({
                     }}
                 >
                     {obstaclesVisible ? "Clean Map" : "Enhanced Map"}
+                </button>
+                <button
+                    onPointerDown={toggleGrid}
+                >
+                    {gridOn ? "Hide Grid" : "Show Grid"}
                 </button>
             </div>
         </div>
