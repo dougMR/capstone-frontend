@@ -772,7 +772,7 @@ const PathfindingFn = (setProgressPercent) => {
         const endIndex = order.length - 1;
         order = stripStartEndIndexes([...order]);
         console.log("waypoints: ", waypoints);
-        shuffle(order, order.length);
+        // shuffle(order, order.length);
         console.log("order: ", order);
 
         // Create Lookup Table for all Waypoints to all Waypoints

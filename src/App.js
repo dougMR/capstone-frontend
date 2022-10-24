@@ -8,6 +8,7 @@ import Launch from "./Launch";
 import Search from "./Search";
 import Layout from "./Layout";
 import StoreSelector from "./StoreSelector";
+import ViewInventory from "./ViewInventory";
 import APIUrl from "./APIUrl";
 console.log("Hello from App.js");
 
@@ -84,6 +85,10 @@ function App() {
                             }
                         />
                         <Route path="/login" element={<Login setUser={setUser} setLoggedIn={setLoggedIn} setCurrentStore={setCurrentStore} />} />
+                        <Route
+                            path="/inventory"
+                            element={<ViewInventory currentStore={currentStore} />}
+                        />
                     </Route>
                 </Routes>
             </BrowserRouter>

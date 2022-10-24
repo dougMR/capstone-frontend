@@ -1,5 +1,5 @@
 // import APIUrl from "./APIUrl";
-import logo from "./images/shop-faster-logo-arrow-white.svg";    //"./images/shopfaster-logo.svg";
+import logo from "./images/shop-faster-logo-arrow-black.svg";    //"./images/shopfaster-logo.svg";
 // import { useState, useEffect } from "react";
 import Nav from "./Nav";
 const Header = ({ currentStore, loggedIn, user }) => {
